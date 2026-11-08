@@ -16,6 +16,7 @@ Open `index.html` in a modern browser. No build step or package installation is 
 - CSV export
 - Live organization-scoped Supabase reads and inserts
 - Responsive layout for mobile and desktop
+- GitHub Actions CI checks for inline JavaScript syntax and key backend integrations
 
 ## Supabase backend foundation
 
@@ -60,8 +61,8 @@ Never put a Supabase service-role or secret key in frontend code. The frontend m
 
 ## Deployment
 
-The current frontend is a static website. A static hosting service can serve the repository root; the entry point is `index.html`. No build command is required for the demo.
+The current frontend is a static website. A static hosting service can serve the repository root; the entry point is `index.html`. No build command is required. Hosting and Supabase Auth redirect URLs have not yet been configured or verified.
 
 ## Next phase
 
-Run an end-to-end authenticated browser test, implement public receipt verification and robust offline synchronization, and harden role-based actions and financial controls before using it for real collections.
+Complete signed-in browser end-to-end testing, build robust offline synchronization and conflict handling, add contribution reversal/reconciliation workflows, and complete production financial controls before using it for real collections.
