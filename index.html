@@ -188,6 +188,7 @@ function showSession(user,members){
  document.querySelector('.main').prepend(bar);
  document.getElementById('signOutBtn').addEventListener('click',async()=>{await supabase.auth.signOut();location.reload();});
  render();
+ window.chandaSyncOutbox?.();
 }
 function safe(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 
