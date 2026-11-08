@@ -40,19 +40,22 @@ Implemented in `index.html`:
 - Live organization-scoped reads and inserts for events, collectors, contributions and expenses
 - Role-aware UI: owners/admins manage events, collectors and expenses; collectors can record contributions
 - Atomic, server-generated receipt numbers scoped by organization and year (`CS-YYYY-000001`)
+- Contribution reversal workflow: only owners/admins can reverse a confirmed entry with a reason; original receipt and record remain in history, and reversal is audited
+- Offline contribution outbox using IndexedDB; queued items are scoped to the signed-in user, marked as provisional (not official receipts), retried on reconnect/login, and receive official server receipts only after sync
 - Read-only audit history for event, collector, contribution and expense changes; visible only to owners/admins
 - Audit CSV export
 - Public receipt verification using organization verification code + receipt number; public response excludes donor name and phone
 
 The receipt allocator is an internal `SECURITY DEFINER` function in the non-exposed `private` schema, called through an authenticated `SECURITY INVOKER` RPC wrapper. The public verification function returns only receipt status, organization, amount, payment method, event and date. Supabase security advisor returned **no findings** after these changes.
 
-A rollback-only database test exercised authenticated contribution creation, sequential receipt allocation, audit trigger creation and owner audit visibility. A second rollback-only test exercised anonymous receipt verification. These are database-level tests, **not** a complete signed-in browser end-to-end test.
+A rollback-only database test exercised authenticated contribution creation, sequential receipt allocation, audit trigger creation and owner audit visibility. A second rollback-only test exercised anonymous receipt verification. A further rollback-only test exercised contribution reversal, reversal metadata and the resulting audit entry. Supabase security and health advisors returned no findings after these changes. These are database-level tests, **not** a complete signed-in browser end-to-end test.
 
 Still pending:
 - Complete browser testing with a real account (signup, email verification, login, workspace creation, data entry, refresh, sign-out and public receipt verification)
-- Robust offline queue and conflict/retry handling
+- Offline queue currently covers contribution entry only; event, collector and expense edits still require connectivity
+- Browser-level offline/reconnect testing on real Android and desktop devices
 - Audit-log retention/export controls and full user-name attribution
-- More complete edit/reversal workflows, financial reconciliation and production controls
+- Expense receipt attachments, approval/reconciliation workflow, immutable cash closing and production financial controls
 - Hosting/deployment and domain configuration
 
 **Do not use this as an official financial ledger yet.** Treat the app as a test-stage prototype until the remaining browser and financial-control checks are complete.
