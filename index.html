@@ -299,6 +299,12 @@ function showSession(user,members){
 function safe(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 
 window.chandaSetWorkspaceData=function(next){db=next;currentOrg=window.chandaCurrentOrg;render()};
+function dateInIndia(value){
+ if(!value)return '';
+ const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(value));
+ const part=type=>parts.find(p=>p.type===type)?.value||'';
+ return part('year')+'-'+part('month')+'-'+part('day');
+}
 async function loadWorkspace(orgId){
  const [ev,co,doRows,ex]=await Promise.all([
   supabase.from('events').select('*').eq('organization_id',orgId).order('created_at',{ascending:false}),
@@ -311,7 +317,7 @@ async function loadWorkspace(orgId){
  window.chandaKnownIds={events:new Set((ev.data||[]).map(x=>x.id)),collectors:new Set((co.data||[]).map(x=>x.id)),contributions:new Set((doRows.data||[]).map(x=>x.id)),expenses:new Set((ex.data||[]).map(x=>x.id))};
  window.chandaSetWorkspaceData({
   orgs:memberships.map(m=>({id:m.organization_id,name:m.organizations?.name||'Organization',city:m.organizations?.city||'',slug:m.organizations?.slug||'',code:'CS'})),
-  events:(ev.data||[]).map(x=>({id:x.id,org:x.organization_id,name:x.name,type:x.event_type||'Community event',date:x.starts_at?x.starts_at.slice(0,10):'',goal:Number(x.target_amount||0)})),
+  events:(ev.data||[]).map(x=>({id:x.id,org:x.organization_id,name:x.name,type:x.event_type||'Community event',date:x.starts_at?dateInIndia(x.starts_at):'',goal:Number(x.target_amount||0)})),
   collectors:(co.data||[]).map(x=>({id:x.id,org:x.organization_id,name:x.name,phone:x.phone||''})),
   donations:(doRows.data||[]).map(x=>({id:x.id,receipt:x.receipt_number,org:x.organization_id,event:x.event_id,name:x.donor_name||'Anonymous',phone:x.donor_phone||'',amount:Number(x.amount),mode:x.payment_method.toUpperCase(),collector:x.collector_id,date:x.received_at.slice(0,10),note:x.notes||'',status:x.status,reversedAt:x.reversed_at||null,reversalReason:x.reversal_reason||''})),
   expenses:(ex.data||[]).map(x=>({id:x.id,org:x.organization_id,title:x.title,amount:Number(x.amount),event:x.event_id,date:x.expense_date,paidBy:x.paid_to||''}))
