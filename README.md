@@ -43,4 +43,4 @@ The current frontend is a static website. A static hosting service can serve the
 
 ## Next phase
 
-Run an end-to-end authenticated browser test, implement server-side transactional receipt numbering and audit history, and harden role-based actions before using it for real collections.
+Run an end-to-end authenticated browser test, implement public receipt verification and robust offline synchronization, and harden role-based actions and financial controls before using it for real collections.
