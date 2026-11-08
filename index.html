@@ -397,12 +397,12 @@ function orgsPage(el){el.innerHTML=heading('Workspaces','Organizations','Your ac
 async function switchOrg(id){try{await window.chandaSwitchWorkspace(id);toast('Workspace switched')}catch(e){toast(e.message||'Could not switch workspace')}}
 function modal(title,body,submit,label='Save'){ $('modalroot').innerHTML='<div class="modalback" onclick="if(event.target===this)closeModal()"><div class="modal"><h2>'+title+'</h2><form id="modalform">'+body+'<div class="actions"><button type="button" class="ghost" onclick="closeModal()">Cancel</button><button class="primary">'+label+'</button></div></form></div></div>';$('modalform').onsubmit=async e=>{e.preventDefault();const btn=e.submitter;btn.disabled=true;try{await submit(new FormData(e.target));closeModal()}catch(err){toast(err.message||'Could not save.');btn.disabled=false}}}
 
-function printReceipt(){
+async function printReceipt(){
  const source=document.querySelector('#modalroot .traditional-receipt');
  if(!source){toast('Receipt is not ready to print.');return}
  const frame=document.createElement('iframe');
  frame.setAttribute('aria-hidden','true');
- frame.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden';
+ frame.style.cssText='position:fixed;right:0;bottom:0;width:1px;height:1px;border:0;opacity:0;pointer-events:none';
  document.body.appendChild(frame);
  const doc=frame.contentDocument;
  const clone=source.cloneNode(true);
@@ -421,6 +421,7 @@ function printReceipt(){
  doc.head.innerHTML='<meta charset="utf-8"><title>ChandaSetu Receipt</title>';doc.head.appendChild(style);
  const sheet=doc.createElement('div');sheet.className='print-sheet';sheet.appendChild(clone);doc.body.innerHTML='';doc.body.appendChild(sheet);
  const cleanup=()=>setTimeout(()=>frame.remove(),1000);
+ try{await Promise.all(Array.from(clone.querySelectorAll('img'),img=>img.decode().catch(()=>{})));if(doc.fonts&&doc.fonts.ready)await doc.fonts.ready;}catch(e){}
  requestAnimationFrame(()=>requestAnimationFrame(()=>{
   const available=287*96/25.4;const natural=clone.scrollHeight;const scale=Math.min(1,available/natural);
   clone.style.transform='scale('+scale+')';clone.style.transformOrigin='top left';clone.style.width='200mm';clone.style.height='auto';
