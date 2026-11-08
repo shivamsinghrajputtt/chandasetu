@@ -55,4 +55,126 @@ function openOrg(){modal('Add an organization','<div class="formgrid">'+field('O
 function showReceipt(id){const d=db.donations.find(x=>x.id===id);if(!d)return;$('modalroot').innerHTML='<div class="modalback" onclick="if(event.target===this)closeModal()"><div class="modal"><div class="toolbar no-print" style="justify-content:flex-end"><button class="ghost" onclick="closeModal()">Close</button><button class="primary" onclick="window.print()">Print / Save PDF</button></div><div class="receipt"><div class="receipthead"><h2>'+esc(org().name)+'</h2><div>'+esc(org().city)+'</div><b>COMMUNITY CONTRIBUTION RECEIPT</b></div><p>Receipt: <b>'+esc(d.receipt)+'</b> &nbsp; Date: <b>'+esc(d.date)+'</b></p><p>Received with thanks from <b>'+esc(d.name)+'</b></p><p>For event: <b>'+esc(eventName(d.event))+'</b></p><p>Payment mode: <b>'+esc(d.mode)+'</b></p><p>Collected by: <b>'+esc(collectorName(d.collector))+'</b></p><hr><b>Contribution amount</b><div class="amount">'+money(d.amount)+'</div><p class="muted">Computer-generated receipt. UPI entries are recorded manually and should be verified against your bank statement.</p><center>Thank you for supporting the community.</center></div></div></div>'}
 function exportCSV(){const rows=[['Receipt','Donor','Event','Amount','Mode','Collector','Date'],...dons().map(d=>[d.receipt,d.name,eventName(d.event),d.amount,d.mode,collectorName(d.collector),d.date])];const csv=rows.map(r=>r.map(v=>'"'+String(v??'').replaceAll('"','""')+'"').join(',')).join('\n'),a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='chandasetu-report.csv';a.click();URL.revokeObjectURL(a.href)}
 render();
-</script></body></html>
+</script>
+<style>
+#authGate{position:fixed;inset:0;z-index:30;background:#f5f7f4;display:grid;place-items:center;padding:20px;font-family:Inter,system-ui,sans-serif}
+.auth-card{width:min(440px,100%);background:white;border:1px solid #e5eae6;border-radius:20px;padding:28px;box-shadow:0 18px 60px #102a2514}
+.auth-brand{font-size:27px;font-weight:900;color:#14231f}.auth-brand span{color:#176b50}
+.auth-card h1{font-size:23px;margin:24px 0 5px}.auth-card p{color:#68766f;font-size:14px}
+.auth-card label{display:block;font-size:12px;font-weight:700;margin:13px 0 5px;color:#53635b}
+.auth-card input{width:100%;padding:12px;border:1px solid #dce4de;border-radius:9px;font:inherit}
+.auth-card button{width:100%;margin-top:15px}.auth-switch{background:none;color:#176b50;padding:10px}.auth-error{color:#b54747;font-size:13px;min-height:18px;margin-top:10px}
+#authOrgSetup{display:none;position:fixed;inset:0;z-index:31;background:#f5f7f4;place-items:center;padding:20px}
+#authOrgSetup .auth-card{width:min(500px,100%)}
+.auth-note{background:#fff7e6;border:1px solid #f1dfb5;color:#74551b;padding:12px 14px;border-radius:10px;font-size:12px;margin:14px 0}
+#sessionBar{background:#fff7e6;border-bottom:1px solid #f1dfb5;color:#74551b;padding:9px 18px;font-size:12px;display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
+#sessionBar button{padding:6px 10px;font-size:12px}
+</style>
+<div id="authGate">
+ <div class="auth-card">
+  <div class="auth-brand">Chanda<span>Setu</span></div>
+  <div class="tag" style="color:#68766f">COMMUNITY ACCOUNTS, MADE CLEAR</div>
+  <h1 id="authTitle">Welcome back</h1><p id="authSubtitle">Sign in to access your committee workspace.</p>
+  <form id="authForm">
+   <div id="nameWrap" style="display:none"><label for="authName">Full name</label><input id="authName" autocomplete="name" placeholder="Your full name"></div>
+   <label for="authEmail">Email address</label><input id="authEmail" type="email" required autocomplete="email" placeholder="you@example.com">
+   <label for="authPassword">Password</label><input id="authPassword" type="password" required minlength="8" autocomplete="current-password" placeholder="At least 8 characters">
+   <button class="primary" id="authSubmit" type="submit">Sign in</button>
+  </form>
+  <div class="auth-error" id="authError" role="status"></div>
+  <button class="auth-switch" id="authToggle" type="button">New to ChandaSetu? Create account</button>
+  <p style="font-size:11px;margin-top:16px">Secure sign-in powered by Supabase Auth. Never share your password or OTP.</p>
+ </div>
+</div>
+<div id="authOrgSetup">
+ <div class="auth-card">
+  <div class="auth-brand">Chanda<span>Setu</span></div>
+  <h1>Create your organization</h1>
+  <p>Set up the committee or community group you manage. You will become its owner.</p>
+  <form id="orgForm">
+   <label for="orgName">Organization / committee name</label><input id="orgName" required minlength="2" maxlength="120" placeholder="e.g. Singh Puja Samiti">
+   <label for="orgCity">City / district</label><input id="orgCity" placeholder="e.g. Halsi, Bihar">
+   <button class="primary" type="submit">Create workspace</button>
+  </form>
+  <div class="auth-error" id="orgError"></div>
+ </div>
+</div>
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.119.0';
+const supabase = createClient('https://ebmoceseyepavqrioyyk.supabase.co','sb_publishable_Fi45Kjcq2V__5laFSB6_8A_Wle71fyb');
+const gate=document.getElementById('authGate'), orgSetup=document.getElementById('authOrgSetup');
+let signupMode=false, currentUser=null;
+const authError=document.getElementById('authError');
+function authMode(signup){
+ signupMode=signup;document.getElementById('authTitle').textContent=signup?'Create your account':'Welcome back';
+ document.getElementById('authSubtitle').textContent=signup?'Start managing transparent community accounts.':'Sign in to access your committee workspace.';
+ document.getElementById('nameWrap').style.display=signup?'block':'none';
+ document.getElementById('authPassword').autocomplete=signup?'new-password':'current-password';
+ document.getElementById('authSubmit').textContent=signup?'Create account':'Sign in';
+ document.getElementById('authToggle').textContent=signup?'Already registered? Sign in':'New to ChandaSetu? Create account';
+ authError.textContent='';
+}
+document.getElementById('authToggle').addEventListener('click',()=>authMode(!signupMode));
+document.getElementById('authForm').addEventListener('submit',async e=>{
+ e.preventDefault();authError.textContent='';
+ const email=document.getElementById('authEmail').value.trim(),password=document.getElementById('authPassword').value;
+ const name=document.getElementById('authName').value.trim();
+ const btn=document.getElementById('authSubmit');btn.disabled=true;btn.textContent='Please wait…';
+ try{
+  let result;
+  if(signupMode){
+   if(!name)throw new Error('Please enter your full name.');
+   result=await supabase.auth.signUp({email,password,options:{data:{full_name:name}}});
+   if(result.error)throw result.error;
+   if(!result.data.session){authError.textContent='Account created. Please verify your email using the link we sent, then sign in.';return;}
+  }else{
+   result=await supabase.auth.signInWithPassword({email,password});
+   if(result.error)throw result.error;
+  }
+  await enterApp(result.data.user);
+ }catch(err){authError.textContent=err.message||'Unable to sign in. Please try again.';}
+ finally{btn.disabled=false;btn.textContent=signupMode?'Create account':'Sign in';}
+});
+async function enterApp(user){
+ currentUser=user;
+ const {error:profileError}=await supabase.from('profiles').upsert({id:user.id,full_name:user.user_metadata?.full_name||user.email?.split('@')[0]||'Member'},{onConflict:'id'});
+ if(profileError)throw profileError;
+ const {data:members,error}=await supabase.from('organization_members').select('organization_id,role,organizations(id,name,city)').eq('user_id',user.id);
+ if(error)throw error;
+ gate.style.display='none';
+ if(!members?.length){orgSetup.style.display='grid';return;}
+ orgSetup.style.display='none';showSession(user,members);
+}
+function showSession(user,members){
+ const layout=document.querySelector('.layout');layout.style.display='';
+ const old=document.getElementById('sessionBar');if(old)old.remove();
+ const bar=document.createElement('div');bar.id='sessionBar';
+ const workspaces=members.map(m=>m.organizations?.name).filter(Boolean).join(', ');
+ bar.innerHTML='<span><b>Signed in:</b> '+safe(user.email||'')+' · Workspace: '+safe(workspaces||'No workspace')+'<br><small>Prototype notice: collection, expense and report screens still use browser demo data, not the live ledger.</small></span><button class="ghost" id="signOutBtn">Sign out</button>';
+ document.querySelector('.main').prepend(bar);
+ document.getElementById('signOutBtn').addEventListener('click',async()=>{await supabase.auth.signOut();location.reload();});
+}
+function safe(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+document.getElementById('orgForm').addEventListener('submit',async e=>{
+ e.preventDefault();const btn=e.submitter;btn.disabled=true;btn.textContent='Creating…';
+ const name=document.getElementById('orgName').value.trim(),city=document.getElementById('orgCity').value.trim();
+ const slug=name.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-'+currentUser.id.slice(0,8);
+ try{
+  const {data:org,error}=await supabase.from('organizations').insert({name,city:city||null,slug,created_by:currentUser.id}).select('id,name,city').single();
+  if(error)throw error;
+  const {error:memberError}=await supabase.from('organization_members').insert({organization_id:org.id,user_id:currentUser.id,role:'owner'});
+  if(memberError)throw memberError;
+  orgSetup.style.display='none';showSession(currentUser,[{role:'owner',organizations:org}]);
+ }catch(err){document.getElementById('orgError').textContent=err.message||'Could not create workspace.';}
+ finally{btn.disabled=false;btn.textContent='Create workspace';}
+});
+document.querySelector('.layout').style.display='none';
+const {data:{session}}=await supabase.auth.getSession();
+if(session){try{await enterApp(session.user);}catch(err){gate.style.display='grid';authError.textContent=err.message;}}
+supabase.auth.onAuthStateChange(async(event,session)=>{
+ if(event==='SIGNED_OUT'){location.reload();return;}
+ if(event==='SIGNED_IN'&&session&&!currentUser){try{await enterApp(session.user);}catch(err){gate.style.display='grid';authError.textContent=err.message;}}
+});
+</script>
+
+</body></html>
