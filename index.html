@@ -106,6 +106,44 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
  .receipt-document .receipt-bottom{margin-top:5px!important;padding-top:4px!important}
 }
 
+
+/* Dedicated public verification page: no sign-in clutter for donors. */
+body.receipt-verify-mode #authGate{background:radial-gradient(circle at 85% 12%,#f5e7ce 0,transparent 32%),linear-gradient(160deg,#f4f7f2,#fffaf1);padding:22px}
+body.receipt-verify-mode .auth-card{width:min(560px,100%);padding:clamp(22px,5vw,38px);border-radius:22px;border-color:#e7dfd1;box-shadow:0 20px 60px #173e3015}
+body.receipt-verify-mode .auth-card>.tag,
+body.receipt-verify-mode #authForm,
+body.receipt-verify-mode #authError,
+body.receipt-verify-mode #authToggle,
+body.receipt-verify-mode .auth-card>p:last-child{display:none!important}
+body.receipt-verify-mode .auth-card h1{margin:22px 0 6px;font-size:clamp(25px,5vw,32px)}
+body.receipt-verify-mode .auth-card>p{display:block;color:#69766f;font-size:14px;line-height:1.55}
+body.receipt-verify-mode .auth-card details{display:block!important;margin-top:20px;padding:17px;border:1px solid #e8e1d5;border-radius:14px;background:#fffdf9}
+body.receipt-verify-mode .auth-card details summary{display:none}
+body.receipt-verify-mode #verifyForm label{font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:#65736b}
+body.receipt-verify-mode #verifyForm input{min-height:48px;background:#fff}
+body.receipt-verify-mode #verifyForm button{width:100%;min-height:48px;background:#176b50;color:#fff;border:0;border-radius:10px;font-weight:750}
+.verify-result{white-space:normal}
+.verify-record{margin-top:14px;padding:17px;border:1px solid #dce7dc;border-radius:14px;background:#fff}
+.verify-record.is-confirmed{border-color:#cfe3d4;background:linear-gradient(180deg,#f4faf5,#fff)}
+.verify-record.is-reversed,.verify-invalid{border-color:#efd0cb;background:#fff8f6}
+.verify-record-head{display:flex;align-items:center;gap:11px;padding-bottom:13px;border-bottom:1px solid #e7ece6}
+.verify-symbol{width:34px;height:34px;display:grid;place-items:center;flex:0 0 34px;border-radius:50%;background:#dcefe1;color:#176b50;font-size:19px;font-weight:900}
+.is-reversed .verify-symbol,.verify-invalid .verify-symbol{background:#f8dfdb;color:#a33d36}
+.verify-record-head>div{display:flex;flex-direction:column;gap:3px}
+.verify-record-head b{font-size:15px;color:#175c47}
+.verify-record-head small{font-size:11px;color:#718078}
+.verify-record-org{padding:13px 0 10px;font-size:18px;font-weight:800;color:#26372f}
+.verify-record-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 12px}
+.verify-record-grid>div{display:flex;flex-direction:column;gap:4px;min-width:0}
+.verify-record-grid span{font-size:9px;letter-spacing:.8px;font-weight:800;color:#7b857e}
+.verify-record-grid b{font-size:13px;line-height:1.4;overflow-wrap:anywhere;color:#293a32}
+.verify-disclaimer{margin:15px 0 0;padding-top:12px;border-top:1px solid #e7ece6;font-size:11px;line-height:1.5;color:#6c7771}
+.verify-invalid{padding:15px;color:#873b34}
+.verify-invalid b,.verify-invalid span{display:block}
+.verify-invalid span{margin-top:5px;line-height:1.45}
+.verify-loading{padding:14px;color:#53665b}
+@media(max-width:420px){body.receipt-verify-mode #authGate{padding:12px}.verify-record-grid{grid-template-columns:1fr 1fr}}
+
 </style>
 </head>
 <body>
@@ -283,24 +321,36 @@ function authMode(signup){
 document.getElementById('authToggle').addEventListener('click',()=>authMode(!signupMode));
 
 document.getElementById('verifyForm').addEventListener('submit',async e=>{
- e.preventDefault();const out=document.getElementById('verifyResult');out.textContent='Checking receipt…';
+ e.preventDefault();const out=document.getElementById('verifyResult');
  const slug=document.getElementById('verifyOrg').value.trim(),receipt=document.getElementById('verifyReceipt').value.trim();
+ out.className='verify-result verify-loading';out.textContent='Verifying this receipt securely…';
+ const btn=document.querySelector('#verifyForm button[type="submit"]');if(btn){btn.disabled=true;btn.textContent='Verifying…';}
  try{
   const {data,error}=await supabase.rpc('verify_receipt',{p_org_slug:slug,p_receipt:receipt});
   if(error)throw error;
-  const r=data?.[0];if(!r){out.textContent='No matching receipt found. Check the organization code and receipt number.';return;}
-  out.innerHTML='<b>Receipt found · '+safe(r.status.toUpperCase())+'</b><br>'+safe(r.organization_name)+'<br>Receipt: '+safe(r.receipt_number)+'<br>Amount: ₹'+Number(r.amount).toLocaleString('en-IN')+'<br>Payment: '+safe(r.payment_method.toUpperCase())+'<br>Event: '+safe(r.event_name||'—')+'<br>Date: '+safe(new Date(r.received_at).toLocaleString('en-IN'));
- }catch(err){out.textContent=err.message||'Verification failed.';}
+  const r=data?.[0];
+  if(!r){out.className='verify-result verify-invalid';out.innerHTML='<b>Receipt not found</b><span>We could not find a matching record. Check the organization code and receipt number.</span>';return;}
+  const status=String(r.status||'unknown').toLowerCase();
+  const valid=status==='confirmed';
+  const statusLabel=status==='confirmed'?'Verified · Confirmed':status==='reversed'?'Reversed · Not valid for collection':'Record found · '+status.toUpperCase();
+  const dateText=r.received_at?new Intl.DateTimeFormat('en-IN',{day:'2-digit',month:'long',year:'numeric',timeZone:'Asia/Kolkata'}).format(new Date(r.received_at)):'—';
+  out.className='verify-result verify-record '+(valid?'is-confirmed':status==='reversed'?'is-reversed':'is-other');
+  out.innerHTML='<div class="verify-record-head"><span class="verify-symbol">'+(valid?'✓':'!')+'</span><div><b>'+safe(statusLabel)+'</b><small>Online record from ChandaSetu</small></div></div><div class="verify-record-org">'+safe(r.organization_name)+'</div><div class="verify-record-grid"><div><span>RECEIPT NUMBER</span><b>'+safe(r.receipt_number)+'</b></div><div><span>AMOUNT</span><b>₹'+Number(r.amount).toLocaleString('en-IN')+'</b></div><div><span>EVENT / PURPOSE</span><b>'+safe(r.event_name||'Community contribution')+'</b></div><div><span>PAYMENT METHOD</span><b>'+safe(String(r.payment_method||'—').toUpperCase())+'</b></div><div><span>DATE RECEIVED</span><b>'+safe(dateText)+'</b></div></div><p class="verify-disclaimer">This confirms that a matching entry exists in the organization record. For UPI contributions, independently check the transaction in your bank or UPI app.</p>';
+ }catch(err){out.className='verify-result verify-invalid';out.innerHTML='<b>Could not verify right now</b><span>'+safe(err.message||'Please check your internet connection and try again.')+'</span>';}
+ finally{if(btn){btn.disabled=false;btn.textContent='Verify receipt';}}
 });
 
 
 // Open the public receipt-verification form directly when a donor scans the receipt QR.
 const receiptLinkParams=new URLSearchParams(window.location.search);
 if(receiptLinkParams.get('verify')==='1'){
+ document.body.classList.add('receipt-verify-mode');
  gate.style.display='grid';
  const verifyDetails=document.querySelector('#authGate details');
  const verifyOrgInput=document.getElementById('verifyOrg');
  const verifyReceiptInput=document.getElementById('verifyReceipt');
+ document.getElementById('authTitle').textContent='Receipt verification';
+ document.getElementById('authSubtitle').textContent='Check this contribution directly against the organization’s online record.';
  if(verifyDetails&&verifyOrgInput&&verifyReceiptInput){
   verifyDetails.open=true;
   verifyOrgInput.value=receiptLinkParams.get('org')||'';
