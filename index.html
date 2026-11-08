@@ -291,6 +291,52 @@ body.receipt-verify-mode #verifyForm button{width:100%;min-height:48px;backgroun
  .receipt-trad-footer{margin-top:5px!important;padding-top:4px!important}
 }
 
+
+/* FINAL PRINT OVERRIDE: keep the complete traditional receipt on one A4 page */
+@page{size:A4 portrait;margin:7mm}
+@media print{
+ html,body{margin:0!important;padding:0!important;width:100%!important;height:auto!important;min-height:0!important;overflow:visible!important;background:#fff!important}
+ body *{visibility:hidden!important}
+ #modalroot,#modalroot *{visibility:visible!important}
+ #modalroot{position:absolute!important;left:0!important;top:0!important;width:100%!important;margin:0!important;padding:0!important}
+ .receipt-backdrop{position:static!important;display:block!important;width:100%!important;height:auto!important;min-height:0!important;margin:0!important;padding:0!important;overflow:visible!important;background:#fff!important}
+ .receipt-modal{display:block!important;position:static!important;width:100%!important;max-width:none!important;height:auto!important;max-height:none!important;margin:0!important;padding:0!important;overflow:visible!important;background:#fff!important}
+ .receipt-actions,.no-print{display:none!important}
+ .traditional-receipt{display:block!important;box-sizing:border-box!important;width:100%!important;max-width:none!important;height:auto!important;max-height:none!important;margin:0!important;padding:0!important;overflow:visible!important;border:0!important;border-radius:0!important;box-shadow:none!important;break-before:avoid!important;break-after:avoid!important;break-inside:avoid!important;page-break-before:avoid!important;page-break-after:avoid!important;page-break-inside:avoid!important;font-size:9pt!important}
+ .traditional-frame{box-sizing:border-box!important;width:100%!important;min-height:0!important;height:auto!important;padding:5mm!important;overflow:visible!important;break-inside:avoid!important;page-break-inside:avoid!important}
+ .receipt-trad-top{padding-bottom:2.5mm!important;font-size:7pt!important}
+ .receipt-trad-head{padding:4mm 0!important}
+ .receipt-emblem{width:8mm!important;height:8mm!important;margin-bottom:1mm!important;font-size:14pt!important}
+ .receipt-org{font-size:19pt!important}
+ .receipt-address{font-size:8pt!important}
+ .receipt-heading{margin-top:2mm!important;padding:1.5mm 4mm!important;font-size:10pt!important}
+ .receipt-subheading{margin-top:1mm!important;font-size:7.5pt!important}
+ .receipt-trad-meta{padding:3mm 0!important;gap:3mm!important}
+ .receipt-trad-meta span,.receipt-field span,.receipt-received span{font-size:6.5pt!important}
+ .receipt-trad-meta>div>b{font-size:8.5pt!important}
+ .receipt-trad-content{padding:3mm 0!important}
+ .receipt-received{padding-bottom:3mm!important}
+ .receipt-received>b{font-size:14pt!important}
+ .receipt-trad-grid{gap:3mm 5mm!important;padding:3mm 0!important}
+ .receipt-field b{font-size:9pt!important;line-height:1.25!important}
+ .receipt-amount{margin-top:1mm!important;padding:3mm 4mm!important}
+ .receipt-amount>div span{font-size:6.5pt!important}
+ .receipt-amount>div b{font-size:7.5pt!important}
+ .receipt-amount strong{font-size:21pt!important}
+ .receipt-amount-words{margin-top:1.5mm!important;font-size:7pt!important}
+ .receipt-trad-bottom{grid-template-columns:1.35fr .8fr!important;gap:3mm!important;padding-top:3mm!important}
+ .receipt-verify{gap:2.5mm!important;padding:2mm!important}
+ .receipt-verify img{width:18mm!important;height:18mm!important;flex:0 0 18mm!important}
+ .receipt-verify b{font-size:8pt!important}
+ .receipt-verify span,.receipt-verify small,.receipt-verify a{font-size:6.5pt!important;line-height:1.25!important}
+ .receipt-sign{gap:1mm!important}
+ .receipt-sign b{font-size:7.5pt!important}
+ .receipt-sign small{font-size:6.5pt!important}
+ .receipt-disclaimer{margin-top:2.5mm!important;padding-top:1.5mm!important;font-size:6.5pt!important}
+ .receipt-trad-footer{margin-top:2mm!important;padding-top:1.5mm!important;font-size:7pt!important}
+ .receipt-status{font-size:6.5pt!important}
+}
+
 </style>
 </head>
 <body>
