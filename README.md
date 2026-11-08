@@ -33,7 +33,7 @@ Row Level Security (RLS) is enabled on all seven public tables. Policies scope r
 
 ## Important implementation status
 
-The frontend is **not yet connected** to Supabase. It still uses demo data in the browser's localStorage. Authentication screens, live database reads/writes, server-generated receipt numbering, audit history, public receipt verification and offline synchronization are still pending. Do not use the browser demo as the official financial ledger for live collections.
+Supabase email/password authentication, organization onboarding, workspace switching, and initial live reads/inserts for events, collectors, contributions and expenses are now implemented in `index.html`. Browser demo data is no longer used for the authenticated dashboard. This integration has been committed and code-verified, but has **not yet passed a complete signed-in browser end-to-end test**. Receipt numbers are currently random client-generated identifiers, not server-issued sequential receipts. Audit history, public receipt verification, robust offline synchronization, role-based UI, and production-grade financial controls remain pending. **Do not use this as an official financial ledger yet.**
 
 Never put a Supabase service-role or secret key in frontend code. The frontend must use only the publishable key, with RLS providing the data boundary.
 
@@ -43,4 +43,4 @@ The current frontend is a static website. A static hosting service can serve the
 
 ## Next phase
 
-Connect Supabase Auth and the existing RLS-protected tables to the application, then add transactional receipt numbering and audit history before using it for real collections.
+Run an end-to-end authenticated browser test, implement server-side transactional receipt numbering and audit history, and harden role-based actions before using it for real collections.
