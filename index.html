@@ -457,7 +457,7 @@ function openEvent(){
  });
 }
 function openDonation(eventId=''){if(!canCollect()){toast('Your organization role cannot record contributions');return}if(!events().length){toast('Create an event first');return}modal('Record a contribution','<div class="formgrid">'+field('Donor name','name','Full name')+field('Mobile (optional)','phone','10-digit number','tel',false)+selectField('Event','event',events().map(e=>[e.id,e.name]))+field('Amount (₹)','amount','501','number')+selectField('Payment mode','mode',[['Cash','Cash'],['UPI','UPI (manual record)']])+selectField('Collected by','collector',coll().map(c=>[c.id,c.name]),false)+field('UPI reference / note (optional)','note','Reference or note','text',false)+'</div>',async f=>{const amount=+f.get('amount');if(!(amount>0))throw new Error('Enter a valid amount');const d=await window.chandaCreateContribution({event:f.get('event')||null,name:f.get('name'),phone:f.get('phone'),amount,mode:f.get('mode'),collector:f.get('collector')||null,note:f.get('note')});toast('Contribution recorded · '+d.receipt);showReceipt(d.id)},'Save & generate receipt');if(eventId)$('modalform').querySelector('[name=event]').value=eventId}
-function openExpense(){if(!canAdmin()){toast('Only owners and admins can record expenses');return}if(!events().length){toast('Create an event first');return}modal('Add an expense','<div class="formgrid">'+field('Expense title','title','e.g. Sound system')+field('Amount (₹)','amount','1500','number')+selectField('Event','event',events().map(e=>[e.id,e.name]))+field('Date','date',new Date().toISOString().slice(0,10),'date')+field('Paid by','paidBy','Name')+'</div>',async f=>{const amount=+f.get('amount');if(!(amount>0))throw new Error('Enter a valid amount');db.expenses.push({id:uid(),org:currentOrg,title:f.get('title'),amount,event:f.get('event'),date:f.get('date'),paidBy:f.get('paidBy')});await save();toast('Expense saved')})}
+function openExpense(){if(!canAdmin()){toast('Only owners and admins can record expenses');return}if(!events().length){toast('Create an event first');return}modal('Add an expense','<div class="formgrid">'+field('Expense title','title','e.g. Sound system')+field('Amount (₹)','amount','1500','number')+selectField('Event','event',events().map(e=>[e.id,e.name]))+field('Date','date',todayInIndia(),'date')+field('Paid by','paidBy','Name')+'</div>',async f=>{const amount=+f.get('amount');if(!(amount>0))throw new Error('Enter a valid amount');db.expenses.push({id:uid(),org:currentOrg,title:f.get('title'),amount,event:f.get('event'),date:f.get('date'),paidBy:f.get('paidBy')});await save();toast('Expense saved')})}
 function openCollector(){if(!canAdmin()){toast('Only owners and admins can manage collectors');return}modal('Add a collector','<div class="formgrid">'+field('Full name','name','Collector name')+field('Mobile number','phone','Optional','tel',false)+'</div>',async f=>{db.collectors.push({id:uid(),org:currentOrg,name:f.get('name'),phone:f.get('phone')});await save();toast('Collector added')})}
 function openOrg(){modal('Add an organization','<div class="formgrid">'+field('Organization name','name','e.g. Youth Club')+field('City / location','city','Town, State')+'</div>',async f=>{await window.chandaCreateOrganization(f.get('name'),f.get('city'));toast('Organization created')})}
 function reverseContribution(id){
@@ -469,15 +469,17 @@ if(!confirm('Reverse '+d.receipt+' for '+money(d.amount)+'? The original receipt
 window.chandaReverseContribution(id,reason.trim()).then(()=>toast('Contribution reversed. Original record retained.')).catch(e=>toast(e.message||'Could not reverse contribution'));
 }
 function indianAmountWords(value){
- let n=Math.floor(Number(value)||0);if(n===0)return 'Zero rupees only';
+ const amount=Number(value);
+ if(!Number.isFinite(amount)||amount<0)return 'Invalid amount';
+ let paise=Math.round((amount+Number.EPSILON)*100);
+ const rupees=Math.floor(paise/100);paise%=100;
  const one=['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'];
  const ten=['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
  const two=x=>x<20?one[x]:ten[Math.floor(x/10)]+(x%10?' '+one[x%10]:'');
- const parts=[];
- const add=(v,label)=>{if(v){parts.push((v<100?two(v):one[Math.floor(v/100)]+' Hundred'+(v%100?' '+two(v%100):''))+' '+label);}};
- const crore=Math.floor(n/10000000);n%=10000000;const lakh=Math.floor(n/100000);n%=100000;const thousand=Math.floor(n/1000);n%=1000;const hundred=Math.floor(n/100);
- add(crore,'Crore');add(lakh,'Lakh');add(thousand,'Thousand');if(hundred)parts.push(one[hundred]+' Hundred');if(n)parts.push(two(n));
- return parts.join(' ')+' rupees only';
+ const underThousand=x=>{const parts=[];const hundred=Math.floor(x/100),rest=x%100;if(hundred)parts.push(one[hundred]+' Hundred');if(rest)parts.push(two(rest));return parts.join(' ');};
+ const inWords=x=>{if(x===0)return 'Zero';const parts=[];const crore=Math.floor(x/10000000);x%=10000000;const lakh=Math.floor(x/100000);x%=100000;const thousand=Math.floor(x/1000);x%=1000;if(crore)parts.push(underThousand(crore)+' Crore');if(lakh)parts.push(underThousand(lakh)+' Lakh');if(thousand)parts.push(underThousand(thousand)+' Thousand');if(x)parts.push(underThousand(x));return parts.join(' ');};
+ const words=inWords(rupees)+' Rupees';
+ return paise?words+' and '+two(paise)+' Paise only':words+' only';
 }
 function showReceipt(id){
  const d=db.donations.find(x=>x.id===id);if(!d)return;
@@ -663,6 +665,7 @@ function dateInIndia(value){
  const part=type=>parts.find(p=>p.type===type)?.value||'';
  return part('year')+'-'+part('month')+'-'+part('day');
 }
+function todayInIndia(){return dateInIndia(new Date());}
 async function loadWorkspace(orgId){
  const [ev,co,doRows,ex]=await Promise.all([
   supabase.from('events').select('*').eq('organization_id',orgId).order('created_at',{ascending:false}),
@@ -677,11 +680,11 @@ async function loadWorkspace(orgId){
   orgs:memberships.map(m=>({id:m.organization_id,name:m.organizations?.name||'Organization',city:m.organizations?.city||'',slug:m.organizations?.slug||'',code:'CS'})),
   events:(ev.data||[]).map(x=>({id:x.id,org:x.organization_id,name:x.name,type:x.event_type||'Community event',date:x.starts_at?dateInIndia(x.starts_at):'',goal:Number(x.target_amount||0)})),
   collectors:(co.data||[]).map(x=>({id:x.id,org:x.organization_id,name:x.name,phone:x.phone||''})),
-  donations:(doRows.data||[]).map(x=>({id:x.id,receipt:x.receipt_number,org:x.organization_id,event:x.event_id,name:x.donor_name||'Anonymous',phone:x.donor_phone||'',amount:Number(x.amount),mode:x.payment_method.toUpperCase(),collector:x.collector_id,date:x.received_at.slice(0,10),note:x.notes||'',status:x.status,reversedAt:x.reversed_at||null,reversalReason:x.reversal_reason||''})),
+  donations:(doRows.data||[]).map(x=>({id:x.id,receipt:x.receipt_number,org:x.organization_id,event:x.event_id,name:x.donor_name||'Anonymous',phone:x.donor_phone||'',amount:Number(x.amount),mode:x.payment_method.toUpperCase(),collector:x.collector_id,date:dateInIndia(x.received_at),note:x.notes||'',status:x.status,reversedAt:x.reversed_at||null,reversalReason:x.reversal_reason||''})),
   expenses:(ex.data||[]).map(x=>({id:x.id,org:x.organization_id,title:x.title,amount:Number(x.amount),event:x.event_id,date:x.expense_date,paidBy:x.paid_to||''}))
  });
  const pending=await outboxAll(orgId,currentUser.id);
- for(const p of pending){if(!db.donations.some(x=>x.id===p.id))db.donations.unshift({id:p.id,receipt:'PENDING-'+p.id.slice(0,8).toUpperCase(),org:orgId,event:p.event_id,name:p.donor_name||'Anonymous',phone:p.donor_phone||'',amount:Number(p.amount),mode:p.payment_method.toUpperCase(),collector:p.collector_id,date:p.received_at.slice(0,10),note:p.notes||'',status:'pending_sync'});}
+ for(const p of pending){if(!db.donations.some(x=>x.id===p.id))db.donations.unshift({id:p.id,receipt:'PENDING-'+p.id.slice(0,8).toUpperCase(),org:orgId,event:p.event_id,name:p.donor_name||'Anonymous',phone:p.donor_phone||'',amount:Number(p.amount),mode:p.payment_method.toUpperCase(),collector:p.collector_id,date:dateInIndia(p.received_at),note:p.notes||'',status:'pending_sync'});}
  render();
 }
 window.chandaReverseContribution=async function(id,reason){const {data,error}=await supabase.rpc('reverse_contribution',{p_contribution_id:id,p_reason:reason});if(error)throw error;await loadWorkspace(window.chandaCurrentOrg);return data};
