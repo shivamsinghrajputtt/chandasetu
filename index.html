@@ -121,7 +121,30 @@ function modal(title,body,submit,label='Save'){ $('modalroot').innerHTML='<div c
 function closeModal(){$('modalroot').innerHTML=''}
 function field(label,name,placeholder='',type='text',required=true){return '<div class="field"><label>'+label+'</label><input name="'+name+'" type="'+type+'" placeholder="'+placeholder+'" '+(required?'required':'')+'></div>'}
 function selectField(label,name,opts,required=true){return '<div class="field"><label>'+label+'</label><select name="'+name+'" '+(required?'required':'')+'>'+(required?'':'<option value="">Not assigned</option>')+opts.map(o=>'<option value="'+esc(o[0])+'">'+esc(o[1])+'</option>').join('')+'</select></div>'}
-function openEvent(){if(!canAdmin()){toast('Only organization owners and admins can create events');return}modal('Create an event','<div class="formgrid">'+field('Event name','name','e.g. Chhath Puja 2027')+selectField('Event type','type',[['Chhath Puja','Chhath Puja'],['Saraswati Puja','Saraswati Puja'],['Durga Puja','Durga Puja'],['Ganesh Puja','Ganesh Puja'],['Community event','Community event']])+field('Event date','date','','date')+field('Collection goal (₹)','goal','50000','number')+'</div>',async f=>{db.events.push({id:uid(),org:currentOrg,name:f.get('name'),type:f.get('type'),date:f.get('date'),goal:+f.get('goal')||0});await save();toast('Event created')})}
+function setEventTypeCustom(){
+ const custom=$('customEventTypeWrap'),input=$('customEventType');
+ if(!custom||!input)return;
+ const show=$('eventTypeSelect').value==='__custom__';
+ custom.hidden=!show;input.required=show;
+ if(show)input.focus();
+}
+function openEvent(){
+ if(!canAdmin()){toast('Only organization owners and admins can create events');return}
+ const types=[['Chhath Puja','Chhath Puja'],['Saraswati Puja','Saraswati Puja'],['Durga Puja','Durga Puja'],['Ganesh Puja','Ganesh Puja'],['Other religious / cultural event','Other religious / cultural event'],['Community welfare','Community welfare'],['Education / scholarship','Education / scholarship'],['Health camp','Health camp'],['Relief / donation drive','Relief / donation drive'],['Sports / youth event','Sports / youth event'],['Community event','Community event'],['__custom__','＋ Custom purpose…']];
+ const typeOptions=types.map(o=>'<option value="'+esc(o[0])+'">'+esc(o[1])+'</option>').join('');
+ const body='<div class="formgrid">'+field('Event name','name','e.g. Chhath Puja 2027')+'<div class="field"><label for="eventTypeSelect">Event type / purpose</label><select id="eventTypeSelect" name="type" required onchange="setEventTypeCustom()">'+typeOptions+'</select><small class="muted">Choose a category or define your own purpose.</small></div><div class="field full" id="customEventTypeWrap" hidden><label for="customEventType">Your custom event purpose</label><input id="customEventType" name="customType" type="text" maxlength="80" placeholder="e.g. Village library fundraiser" /></div>'+field('Event date','date','','date')+field('Collection goal (₹)','goal','50000','number',false)+'</div>';
+ modal('Create an event',body,async f=>{
+  const name=String(f.get('name')||'').trim(),selectedType=String(f.get('type')||''),customType=String(f.get('customType')||'').trim(),date=String(f.get('date')||''),goalRaw=String(f.get('goal')||'').trim();
+  if(name.length<2)throw new Error('Enter an event name with at least 2 characters.');
+  const type=selectedType==='__custom__'?customType:selectedType;
+  if(!type)throw new Error('Please enter your custom event purpose.');
+  if(type.length>80)throw new Error('Event purpose must be 80 characters or fewer.');
+  const goal=goalRaw===''?0:Number(goalRaw);
+  if(!Number.isFinite(goal)||goal<0)throw new Error('Collection goal must be zero or a positive amount.');
+  db.events.push({id:uid(),org:currentOrg,name,type,date,goal});
+  await save();toast('Event created');
+ });
+}
 function openDonation(eventId=''){if(!canCollect()){toast('Your organization role cannot record contributions');return}if(!events().length){toast('Create an event first');return}modal('Record a contribution','<div class="formgrid">'+field('Donor name','name','Full name')+field('Mobile (optional)','phone','10-digit number','tel',false)+selectField('Event','event',events().map(e=>[e.id,e.name]))+field('Amount (₹)','amount','501','number')+selectField('Payment mode','mode',[['Cash','Cash'],['UPI','UPI (manual record)']])+selectField('Collected by','collector',coll().map(c=>[c.id,c.name]),false)+field('UPI reference / note (optional)','note','Reference or note','text',false)+'</div>',async f=>{const amount=+f.get('amount');if(!(amount>0))throw new Error('Enter a valid amount');const d=await window.chandaCreateContribution({event:f.get('event')||null,name:f.get('name'),phone:f.get('phone'),amount,mode:f.get('mode'),collector:f.get('collector')||null,note:f.get('note')});toast('Contribution recorded · '+d.receipt);showReceipt(d.id)},'Save & generate receipt');if(eventId)$('modalform').querySelector('[name=event]').value=eventId}
 function openExpense(){if(!canAdmin()){toast('Only owners and admins can record expenses');return}if(!events().length){toast('Create an event first');return}modal('Add an expense','<div class="formgrid">'+field('Expense title','title','e.g. Sound system')+field('Amount (₹)','amount','1500','number')+selectField('Event','event',events().map(e=>[e.id,e.name]))+field('Date','date',new Date().toISOString().slice(0,10),'date')+field('Paid by','paidBy','Name')+'</div>',async f=>{const amount=+f.get('amount');if(!(amount>0))throw new Error('Enter a valid amount');db.expenses.push({id:uid(),org:currentOrg,title:f.get('title'),amount,event:f.get('event'),date:f.get('date'),paidBy:f.get('paidBy')});await save();toast('Expense saved')})}
 function openCollector(){if(!canAdmin()){toast('Only owners and admins can manage collectors');return}modal('Add a collector','<div class="formgrid">'+field('Full name','name','Collector name')+field('Mobile number','phone','Optional','tel',false)+'</div>',async f=>{db.collectors.push({id:uid(),org:currentOrg,name:f.get('name'),phone:f.get('phone')});await save();toast('Collector added')})}
