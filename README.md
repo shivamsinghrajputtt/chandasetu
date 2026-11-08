@@ -42,6 +42,7 @@ Implemented in `index.html`:
 - Atomic, server-generated receipt numbers scoped by organization and year (`CS-YYYY-000001`)
 - Contribution reversal workflow: only owners/admins can reverse a confirmed entry with a reason; original receipt and record remain in history, and reversal is audited
 - Offline contribution outbox using IndexedDB; queued items are scoped to the signed-in user, marked as provisional (not official receipts), retried on reconnect/login, and receive official server receipts only after sync
+- Financial reconciliation dashboard separates confirmed collection, expenses, reversed amount and offline-pending entries; CSV export includes status and reversal reason
 - Read-only audit history for event, collector, contribution and expense changes; visible only to owners/admins
 - Audit CSV export
 - Public receipt verification using organization verification code + receipt number; public response excludes donor name and phone
@@ -54,8 +55,9 @@ Still pending:
 - Complete browser testing with a real account (signup, email verification, login, workspace creation, data entry, refresh, sign-out and public receipt verification)
 - Offline queue currently covers contribution entry only; event, collector and expense edits still require connectivity
 - Browser-level offline/reconnect testing on real Android and desktop devices
+- Offline support for event, collector and expense writes (currently contribution entry only)
 - Audit-log retention/export controls and full user-name attribution
-- Expense receipt attachments, approval/reconciliation workflow, immutable cash closing and production financial controls
+- Expense receipt attachments, approval workflow, immutable cash closing and production financial controls
 - Hosting/deployment and domain configuration
 
 **Do not use this as an official financial ledger yet.** Treat the app as a test-stage prototype until the remaining browser and financial-control checks are complete.
