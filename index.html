@@ -84,6 +84,28 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 #eventTypeSelect,#modalform input{min-height:48px}
 @media(max-width:520px){.modalback{padding:12px}.modal{max-height:86dvh;overflow-y:auto}.modal h2{font-size:22px}.modal .field{min-width:0}.modal .field input,.modal .field select{width:100%;max-width:100%}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
+
+/* Android/Chrome print engines must keep the complete receipt on one sheet.
+   Avoid forcing every child into an unbreakable block (that was pushing the
+   signatory/footer onto a second page). */
+@page{size:A5 portrait;margin:5mm}
+@media print{
+ .receipt-document{padding:3mm!important}
+ .receipt-document *{break-inside:auto!important;page-break-inside:auto!important}
+ .receipt-document .receipt-meta,.receipt-document .receipt-amount,.receipt-document .receipt-verify,.receipt-document .receipt-footer{break-inside:avoid!important;page-break-inside:avoid!important}
+ .receipt-document .receipthead{padding:5px 0!important}
+ .receipt-document .receipt-topline{padding-bottom:6px!important;font-size:8px!important}
+ .receipt-document .receipt-meta{padding:6px 0!important}
+ .receipt-document .receipt-body{padding:6px 0!important}
+ .receipt-document .receipt-body h3{margin:2px 0 6px!important;font-size:15px!important}
+ .receipt-document .receipt-details{gap:5px 10px!important}
+ .receipt-document .receipt-amount{margin-top:6px!important;padding:6px 8px!important}
+ .receipt-document .receipt-verify{margin:5px 0!important;padding:5px!important}
+ .receipt-document .receipt-verify img{width:52px!important;height:52px!important;flex-basis:52px!important}
+ .receipt-document .receipt-footer{padding-top:5px!important;gap:6px!important}
+ .receipt-document .receipt-bottom{margin-top:5px!important;padding-top:4px!important}
+}
+
 </style>
 </head>
 <body>
@@ -270,6 +292,23 @@ document.getElementById('verifyForm').addEventListener('submit',async e=>{
   out.innerHTML='<b>Receipt found · '+safe(r.status.toUpperCase())+'</b><br>'+safe(r.organization_name)+'<br>Receipt: '+safe(r.receipt_number)+'<br>Amount: ₹'+Number(r.amount).toLocaleString('en-IN')+'<br>Payment: '+safe(r.payment_method.toUpperCase())+'<br>Event: '+safe(r.event_name||'—')+'<br>Date: '+safe(new Date(r.received_at).toLocaleString('en-IN'));
  }catch(err){out.textContent=err.message||'Verification failed.';}
 });
+
+
+// Open the public receipt-verification form directly when a donor scans the receipt QR.
+const receiptLinkParams=new URLSearchParams(window.location.search);
+if(receiptLinkParams.get('verify')==='1'){
+ const verifyDetails=document.querySelector('#authGate details');
+ const verifyOrgInput=document.getElementById('verifyOrg');
+ const verifyReceiptInput=document.getElementById('verifyReceipt');
+ if(verifyDetails&&verifyOrgInput&&verifyReceiptInput){
+  verifyDetails.open=true;
+  verifyOrgInput.value=receiptLinkParams.get('org')||'';
+  verifyReceiptInput.value=receiptLinkParams.get('receipt')||'';
+  if(verifyOrgInput.value&&verifyReceiptInput.value){
+   document.getElementById('verifyForm').requestSubmit();
+  }
+ }
+}
 
 document.getElementById('authForm').addEventListener('submit',async e=>{
  e.preventDefault();authError.textContent='';
