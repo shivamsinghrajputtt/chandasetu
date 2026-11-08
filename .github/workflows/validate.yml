@@ -1,0 +1,31 @@
+name: Validate ChandaSetu
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Extract and check inline JavaScript
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const html = fs.readFileSync('index.html', 'utf8');
+          const scripts = [...html.matchAll(/<script(?:\s+type="module")?>([\s\S]*?)<\/script>/g)];
+          if (scripts.length !== 2) throw new Error(`Expected 2 inline scripts, found ${scripts.length}`);
+          fs.writeFileSync('/tmp/chandasetu-app.js', scripts[0][1]);
+          fs.writeFileSync('/tmp/chandasetu-auth.mjs', scripts[1][1]);
+          if (!html.includes("supabase.rpc('create_contribution'")) throw new Error('Contribution RPC missing');
+          if (!html.includes("supabase.rpc('verify_receipt'")) throw new Error('Receipt verification RPC missing');
+          if (!html.includes("audit_logs")) throw new Error('Audit history integration missing');
+          NODE
+          node --check /tmp/chandasetu-app.js
+          node --check /tmp/chandasetu-auth.mjs
