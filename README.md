@@ -16,7 +16,8 @@ Open `index.html` in a modern browser. No build step or package installation is 
 - CSV export
 - Live organization-scoped Supabase reads and inserts
 - Responsive layout for mobile and desktop
-- GitHub Actions CI checks for inline JavaScript syntax and key backend integrations
+- GitHub Actions CI checks for inline JavaScript syntax and key backend integrations (latest run passed)
+- GitHub Pages deployment workflow added; enable **Settings → Pages → Build and deployment → GitHub Actions** to publish
 
 ## Supabase backend foundation
 
@@ -58,7 +59,8 @@ Still pending:
 - Offline support for event, collector and expense writes (currently contribution entry only)
 - Audit-log retention/export controls and full user-name attribution
 - Expense receipt attachments, approval workflow, immutable cash closing and production financial controls
-- Hosting/deployment and domain configuration
+- GitHub Pages first publish and Supabase Auth Site URL / Redirect URLs configuration
+- Custom domain setup (optional)
 
 **Do not use this as an official financial ledger yet.** Treat the app as a test-stage prototype until the remaining browser and financial-control checks are complete.
 
@@ -66,7 +68,7 @@ Never put a Supabase service-role or secret key in frontend code. The frontend m
 
 ## Deployment
 
-The current frontend is a static website. A static hosting service can serve the repository root; the entry point is `index.html`. No build command is required. Hosting and Supabase Auth redirect URLs have not yet been configured or verified.
+The current frontend is a static website. A static hosting service can serve the repository root; the entry point is `index.html`. No build command is required. The GitHub Pages deployment workflow is committed. The repository owner must enable **Settings → Pages → Build and deployment → GitHub Actions** once; then add the published site URL to Supabase Auth Site URL and Redirect URLs. These account-level settings have not been changed or verified from this session.
 
 ## Next phase
 
