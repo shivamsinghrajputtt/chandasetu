@@ -43,8 +43,8 @@ function filterDonations(){const q=$('search').value.toLowerCase(),ev=$('eventFi
 function expensesPage(el){el.innerHTML=heading('Money out','Expenses','Record event purchases and payments.',canAdmin()?'<button class="primary" onclick="openExpense()">＋ Add expense</button>':'')+'<div class="panel">'+table(exps().slice().reverse().map(x=>'<tr><td>'+esc(x.date)+'</td><td>'+esc(x.title)+'</td><td>'+esc(eventName(x.event))+'</td><td>'+esc(x.paidBy)+'</td><td><b>'+money(x.amount)+'</b></td></tr>').join('')||'<tr><td colspan="5" class="empty">No expenses recorded.</td></tr>',['Date','Expense','Event','Paid by','Amount'])+'</div>'}
 function collectorsPage(el){el.innerHTML=heading('Collection team','Collectors','See how much each collector has recorded.',canAdmin()?'<button class="primary" onclick="openCollector()">＋ Add collector</button>':'')+'<div class="cards">'+(coll().map(c=>'<div class="card"><span class="pill">Active</span><h3>'+esc(c.name)+'</h3><div class="muted">'+esc(c.phone||'No phone added')+'</div><div class="stat">'+money(dons().filter(d=>d.collector===c.id).reduce((s,d)=>s+ +d.amount,0))+'</div><div class="statlabel">Recorded collection</div></div>').join('')||'<div class="empty">No collectors added.</div>')+'</div>'}
 function reportsPage(el){const inc=dons().reduce((s,d)=>s+ +d.amount,0),out=exps().reduce((s,x)=>s+ +x.amount,0);el.innerHTML=heading('Accountability','Reports','A transparent view of income, expenses and balance.','<div class="toolbar"><button class="ghost" onclick="exportCSV()">Export CSV</button><button class="primary" onclick="window.print()">Print report</button></div>')+'<div class="cards"><div class="card"><div class="statlabel">Income</div><div class="stat">'+money(inc)+'</div></div><div class="card"><div class="statlabel">Expenses</div><div class="stat">'+money(out)+'</div></div><div class="card"><div class="statlabel">Balance</div><div class="stat">'+money(inc-out)+'</div></div><div class="card"><div class="statlabel">Donations</div><div class="stat">'+dons().length+'</div></div></div><div class="panel"><h3>Event-wise summary</h3>'+table(events().map(e=>{const a=dons().filter(d=>d.event===e.id).reduce((s,d)=>s+ +d.amount,0),b=exps().filter(x=>x.event===e.id).reduce((s,x)=>s+ +x.amount,0);return '<tr><td>'+esc(e.name)+'</td><td>'+money(a)+'</td><td>'+money(b)+'</td><td><b>'+money(a-b)+'</b></td></tr>'}).join(''),['Event','Income','Expenses','Balance'])+'</div>'}
-async function auditPage(el){el.innerHTML=heading('Accountability trail','Audit history','Who changed financial and event records, and when.')+'<div class="panel">Loading audit history…</div>';const {data,error}=await supabase.from('audit_logs').select('id,table_name,record_id,action,actor_id,created_at').eq('organization_id',window.chandaCurrentOrg).order('created_at',{ascending:false}).limit(100);if(error){el.innerHTML=heading('Accountability trail','Audit history','Restricted to organization owners and admins.')+'<div class="panel empty">'+esc(error.message.includes('permission')?'You need owner or admin access to view audit history.':error.message)+'</div>';return;}const rows=(data||[]).map(x=>'<tr><td>'+esc(new Date(x.created_at).toLocaleString('en-IN'))+'</td><td><span class="pill">'+esc(x.action)+'</span></td><td>'+esc(x.table_name)+'</td><td><code>'+esc(x.record_id)+'</code></td><td><code>'+esc(x.actor_id||'System')+'</code></td></tr>').join('')||'<tr><td colspan="5" class="empty">No audit activity recorded yet.</td></tr>';el.innerHTML=heading('Accountability trail','Audit history','Latest 100 changes. Read-only and restricted to owners and admins.')+'<div class="panel">'+table(rows,['Time','Action','Record type','Record ID','User ID'])+'</div>'}
-function orgsPage(el){el.innerHTML=heading('Workspaces','Organizations','Your account’s committee workspaces.','<button class="primary" onclick="openOrg()">＋ Add organization</button>')+'<div class="cards">'+db.orgs.map(o=>'<div class="card"><span class="pill">Organization</span><h3>'+esc(o.name)+'</h3><div class="muted">'+esc(o.city)+'</div><p><button class="soft" onclick="switchOrg(\''+o.id+'\')">Open workspace</button></p></div>').join('')+'</div>'}
+async async function auditPage(el){if(!canAdmin()){el.innerHTML=heading('Accountability trail','Audit history','Restricted to organization owners and admins.')+'<div class="panel empty">You need owner or admin access to view audit history.</div>';return;}el.innerHTML=heading('Accountability trail','Audit history','Who changed financial and event records, and when.')+'<div class="panel">Loading audit history…</div>';const {data,error}=await supabase.from('audit_logs').select('id,table_name,record_id,action,actor_id,created_at').eq('organization_id',window.chandaCurrentOrg).order('created_at',{ascending:false}).limit(100);if(error){el.innerHTML=heading('Accountability trail','Audit history','Unable to load audit history.')+'<div class="panel empty">'+esc(error.message)+'</div>';return;}window.chandaAuditRows=data||[];const rows=window.chandaAuditRows.map(x=>'<tr><td>'+esc(new Date(x.created_at).toLocaleString('en-IN'))+'</td><td><span class="pill">'+esc(x.action)+'</span></td><td>'+esc(x.table_name)+'</td><td><code>'+esc(x.record_id)+'</code></td><td><code>'+esc(x.actor_id||'System')+'</code></td></tr>').join('')||'<tr><td colspan="5" class="empty">No audit activity recorded yet.</td></tr>';el.innerHTML=heading('Accountability trail','Audit history','Latest 100 changes. Read-only and restricted to owners and admins.','<button class="ghost" onclick="exportAuditCSV()">Export CSV</button>')+'<div class="panel">'+table(rows,['Time','Action','Record type','Record ID','User ID'])+'</div>'}
+function orgsPage(el){el.innerHTML=heading('Workspaces','Organizations','Your account’s committee workspaces.','<button class="primary" onclick="openOrg()">＋ Add organization</button>')+'<div class="cards">'+db.orgs.map(o=>'<div class="card"><span class="pill">Organization</span><h3>'+esc(o.name)+'</h3><div class="muted">'+esc(o.city)+'</div><p><small>Verification code: <code>'+esc(o.slug||'—')+'</code></small></p><p><button class="soft" onclick="switchOrg(\''+o.id+'\')">Open workspace</button></p></div>').join('')+'</div>'}
 async function switchOrg(id){try{await window.chandaSwitchWorkspace(id);toast('Workspace switched')}catch(e){toast(e.message||'Could not switch workspace')}}
 function modal(title,body,submit,label='Save'){ $('modalroot').innerHTML='<div class="modalback" onclick="if(event.target===this)closeModal()"><div class="modal"><h2>'+title+'</h2><form id="modalform">'+body+'<div class="actions"><button type="button" class="ghost" onclick="closeModal()">Cancel</button><button class="primary">'+label+'</button></div></form></div></div>';$('modalform').onsubmit=async e=>{e.preventDefault();const btn=e.submitter;btn.disabled=true;try{await submit(new FormData(e.target));closeModal()}catch(err){toast(err.message||'Could not save.');btn.disabled=false}}}
 function closeModal(){$('modalroot').innerHTML=''}
@@ -56,6 +56,7 @@ function openExpense(){if(!canAdmin()){toast('Only owners and admins can record 
 function openCollector(){if(!canAdmin()){toast('Only owners and admins can manage collectors');return}modal('Add a collector','<div class="formgrid">'+field('Full name','name','Collector name')+field('Mobile number','phone','Optional','tel',false)+'</div>',async f=>{db.collectors.push({id:uid(),org:currentOrg,name:f.get('name'),phone:f.get('phone')});await save();toast('Collector added')})}
 function openOrg(){modal('Add an organization','<div class="formgrid">'+field('Organization name','name','e.g. Youth Club')+field('City / location','city','Town, State')+'</div>',async f=>{await window.chandaCreateOrganization(f.get('name'),f.get('city'));toast('Organization created')})}
 function showReceipt(id){const d=db.donations.find(x=>x.id===id);if(!d)return;$('modalroot').innerHTML='<div class="modalback" onclick="if(event.target===this)closeModal()"><div class="modal"><div class="toolbar no-print" style="justify-content:flex-end"><button class="ghost" onclick="closeModal()">Close</button><button class="primary" onclick="window.print()">Print / Save PDF</button></div><div class="receipt"><div class="receipthead"><h2>'+esc(org().name)+'</h2><div>'+esc(org().city)+'</div><b>COMMUNITY CONTRIBUTION RECEIPT</b></div><p>Receipt: <b>'+esc(d.receipt)+'</b> &nbsp; Date: <b>'+esc(d.date)+'</b></p><p>Received with thanks from <b>'+esc(d.name)+'</b></p><p>For event: <b>'+esc(eventName(d.event))+'</b></p><p>Payment mode: <b>'+esc(d.mode)+'</b></p><p>Collected by: <b>'+esc(collectorName(d.collector))+'</b></p><hr><b>Contribution amount</b><div class="amount">'+money(d.amount)+'</div><p class="muted">Computer-generated receipt. UPI entries are recorded manually and should be verified against your bank statement.</p><center>Thank you for supporting the community.</center></div></div></div>'}
+function exportAuditCSV(){const rows=[['Timestamp','Action','Table','Record ID','Actor ID'],...(window.chandaAuditRows||[]).map(x=>[x.created_at,x.action,x.table_name,x.record_id,x.actor_id||'System'])];const csv=rows.map(r=>r.map(v=>'\"'+String(v??'').replaceAll('\"','\"\"')+'\"').join(',')).join('\\n'),a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='chandasetu-audit-log.csv';a.click();URL.revokeObjectURL(a.href)}
 function exportCSV(){const rows=[['Receipt','Donor','Event','Amount','Mode','Collector','Date'],...dons().map(d=>[d.receipt,d.name,eventName(d.event),d.amount,d.mode,collectorName(d.collector),d.date])];const csv=rows.map(r=>r.map(v=>'"'+String(v??'').replaceAll('"','""')+'"').join(',')).join('\n'),a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='chandasetu-report.csv';a.click();URL.revokeObjectURL(a.href)}
 render();
 </script>
@@ -66,7 +67,7 @@ render();
 .auth-card h1{font-size:23px;margin:24px 0 5px}.auth-card p{color:#68766f;font-size:14px}
 .auth-card label{display:block;font-size:12px;font-weight:700;margin:13px 0 5px;color:#53635b}
 .auth-card input{width:100%;padding:12px;border:1px solid #dce4de;border-radius:9px;font:inherit}
-.auth-card button{width:100%;margin-top:15px}.auth-switch{background:none;color:#176b50;padding:10px}.auth-error{color:#b54747;font-size:13px;min-height:18px;margin-top:10px}
+.auth-card button{width:100%;margin-top:15px}.auth-card details{margin-top:14px}.auth-card details summary{cursor:pointer;color:#176b50;font-size:13px;font-weight:700}.verify-result{font-size:12px;margin-top:10px;padding:10px;border-radius:8px;background:#f5f7f4;white-space:normal}.auth-switch{background:none;color:#176b50;padding:10px}.auth-error{color:#b54747;font-size:13px;min-height:18px;margin-top:10px}
 #authOrgSetup{display:none;position:fixed;inset:0;z-index:31;background:#f5f7f4;place-items:center;padding:20px}
 #authOrgSetup .auth-card{width:min(500px,100%)}
 .auth-note{background:#fff7e6;border:1px solid #f1dfb5;color:#74551b;padding:12px 14px;border-radius:10px;font-size:12px;margin:14px 0}
@@ -85,7 +86,7 @@ render();
    <button class="primary" id="authSubmit" type="submit">Sign in</button>
   </form>
   <div class="auth-error" id="authError" role="status"></div>
-  <button class="auth-switch" id="authToggle" type="button">New to ChandaSetu? Create account</button>
+  <button class="auth-switch" id="authToggle" type="button">New to ChandaSetu? Create account</button>\n  <details><summary>Verify a contribution receipt</summary><form id="verifyForm"><label for="verifyOrg">Organization verification code</label><input id="verifyOrg" required placeholder="Shown in Organizations"><label for="verifyReceipt">Receipt number</label><input id="verifyReceipt" required placeholder="CS-2026-000001"><button class="soft" type="submit">Verify receipt</button><div id="verifyResult" class="verify-result" aria-live="polite"></div></form></details>
   <p style="font-size:11px;margin-top:16px">Secure sign-in powered by Supabase Auth. Never share your password or OTP.</p>
  </div>
 </div>
@@ -118,6 +119,18 @@ function authMode(signup){
  authError.textContent='';
 }
 document.getElementById('authToggle').addEventListener('click',()=>authMode(!signupMode));
+
+document.getElementById('verifyForm').addEventListener('submit',async e=>{
+ e.preventDefault();const out=document.getElementById('verifyResult');out.textContent='Checking receipt…';
+ const slug=document.getElementById('verifyOrg').value.trim(),receipt=document.getElementById('verifyReceipt').value.trim();
+ try{
+  const {data,error}=await supabase.rpc('verify_receipt',{p_org_slug:slug,p_receipt:receipt});
+  if(error)throw error;
+  const r=data?.[0];if(!r){out.textContent='No matching receipt found. Check the organization code and receipt number.';return;}
+  out.innerHTML='<b>Receipt found · '+safe(r.status.toUpperCase())+'</b><br>'+safe(r.organization_name)+'<br>Receipt: '+safe(r.receipt_number)+'<br>Amount: ₹'+Number(r.amount).toLocaleString('en-IN')+'<br>Payment: '+safe(r.payment_method.toUpperCase())+'<br>Event: '+safe(r.event_name||'—')+'<br>Date: '+safe(new Date(r.received_at).toLocaleString('en-IN'));
+ }catch(err){out.textContent=err.message||'Verification failed.';}
+});
+
 document.getElementById('authForm').addEventListener('submit',async e=>{
  e.preventDefault();authError.textContent='';
  const email=document.getElementById('authEmail').value.trim(),password=document.getElementById('authPassword').value;
@@ -142,7 +155,7 @@ async function enterApp(user){
  currentUser=user;
  const {error:profileError}=await supabase.from('profiles').upsert({id:user.id,full_name:user.user_metadata?.full_name||user.email?.split('@')[0]||'Member'},{onConflict:'id'});
  if(profileError)throw profileError;
- const {data:members,error}=await supabase.from('organization_members').select('organization_id,role,organizations(id,name,city)').eq('user_id',user.id);
+ const {data:members,error}=await supabase.from('organization_members').select('organization_id,role,organizations(id,name,city,slug)').eq('user_id',user.id);
  if(error)throw error;memberships=members||[];
  gate.style.display='none';
  if(!memberships.length){orgSetup.style.display='grid';return;}
@@ -174,7 +187,7 @@ async function loadWorkspace(orgId){
  window.chandaCurrentOrg=orgId;
  window.chandaKnownIds={events:new Set((ev.data||[]).map(x=>x.id)),collectors:new Set((co.data||[]).map(x=>x.id)),contributions:new Set((doRows.data||[]).map(x=>x.id)),expenses:new Set((ex.data||[]).map(x=>x.id))};
  window.chandaSetWorkspaceData({
-  orgs:memberships.map(m=>({id:m.organization_id,name:m.organizations?.name||'Organization',city:m.organizations?.city||'',code:'CS'})),
+  orgs:memberships.map(m=>({id:m.organization_id,name:m.organizations?.name||'Organization',city:m.organizations?.city||'',slug:m.organizations?.slug||'',code:'CS'})),
   events:(ev.data||[]).map(x=>({id:x.id,org:x.organization_id,name:x.name,type:x.event_type||'Community event',date:x.starts_at?x.starts_at.slice(0,10):'',goal:Number(x.target_amount||0)})),
   collectors:(co.data||[]).map(x=>({id:x.id,org:x.organization_id,name:x.name,phone:x.phone||''})),
   donations:(doRows.data||[]).map(x=>({id:x.id,receipt:x.receipt_number,org:x.organization_id,event:x.event_id,name:x.donor_name||'Anonymous',phone:x.donor_phone||'',amount:Number(x.amount),mode:x.payment_method.toUpperCase(),collector:x.collector_id,date:x.received_at.slice(0,10),note:x.notes||''})),
@@ -225,7 +238,7 @@ document.getElementById('orgForm').addEventListener('submit',async e=>{
  const name=document.getElementById('orgName').value.trim(),city=document.getElementById('orgCity').value.trim();
  const slug=name.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-'+currentUser.id.slice(0,8);
  try{
-  const {data:org,error}=await supabase.from('organizations').insert({name,city:city||null,slug,created_by:currentUser.id}).select('id,name,city').single();
+  const {data:org,error}=await supabase.from('organizations').insert({name,city:city||null,slug,created_by:currentUser.id}).select('id,name,city,slug').single();
   if(error)throw error;
   const {error:memberError}=await supabase.from('organization_members').insert({organization_id:org.id,user_id:currentUser.id,role:'owner'});
   if(memberError)throw memberError;
