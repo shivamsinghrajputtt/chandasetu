@@ -7,6 +7,76 @@
 <style>
 :root{--ink:#14231f;--muted:#68766f;--line:#e5eae6;--bg:#f5f7f4;--green:#176b50;--pale:#e7f3ed;--gold:#d8a94d;--white:#fff;--red:#b54747}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,system-ui,sans-serif}button,input,select{font:inherit}button{cursor:pointer;border:0;border-radius:10px;padding:10px 14px;font-weight:650}.primary{background:var(--green);color:white}.soft{background:var(--pale);color:var(--green)}.ghost{background:white;border:1px solid var(--line);color:var(--ink)}.layout{display:grid;grid-template-columns:245px 1fr;min-height:100vh}.side{background:#102a25;color:white;padding:25px 17px;display:flex;flex-direction:column;gap:25px}.brand{font-size:23px;font-weight:850}.brand span{color:var(--gold)}.tag{font-size:10px;letter-spacing:1.5px;color:#a8bdb4;text-transform:uppercase}.orgbox{background:#1b3a32;color:white;border:1px solid #315247;border-radius:12px;padding:12px;text-align:left}.nav{display:grid;gap:5px}.nav button{background:transparent;color:#c3d3cc;text-align:left}.nav button.active,.nav button:hover{background:#21483c;color:white}.foot{margin-top:auto;color:#91a99e;font-size:12px}.main{min-width:0}.top{height:72px;background:white;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 30px}.top small,.muted{color:var(--muted)}.content{padding:28px;max-width:1400px;margin:auto}.heading{display:flex;justify-content:space-between;gap:15px;align-items:flex-start;margin-bottom:22px}.eyebrow{font-size:11px;letter-spacing:1.4px;color:var(--green);font-weight:800;text-transform:uppercase}.heading h1{font-size:28px;letter-spacing:-1px;margin:3px 0}.toolbar{display:flex;gap:8px;flex-wrap:wrap}.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;margin-bottom:18px}.card,.panel{background:white;border:1px solid var(--line);border-radius:15px;padding:17px}.statlabel{color:var(--muted);font-size:13px}.stat{font-size:26px;font-weight:800;margin:6px 0}.grid2{display:grid;grid-template-columns:1.3fr 1fr;gap:15px}.panel h3{margin:0 0 13px;font-size:16px}.tablewrap{overflow:auto;background:white;border:1px solid var(--line);border-radius:13px}table{width:100%;border-collapse:collapse;min-width:620px}th,td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--line);font-size:13px}th{color:var(--muted);background:#fafcfb}tr:last-child td{border:0}.pill{font-size:11px;border-radius:30px;padding:4px 8px;background:var(--pale);color:var(--green);font-weight:700}.empty{text-align:center;padding:30px;color:var(--muted)}.field{display:grid;gap:5px}.field label{font-size:12px;color:var(--muted);font-weight:700}.field input,.field select{width:100%;border:1px solid #dce4de;border-radius:9px;padding:10px;background:white}.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.full{grid-column:1/-1}.modalback{position:fixed;inset:0;background:#0b211bcc;display:grid;place-items:center;padding:16px;z-index:5}.modal{background:white;border-radius:17px;padding:22px;width:min(560px,100%);max-height:90vh;overflow:auto}.modal h2{margin:0 0 17px}.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}.toast{position:fixed;bottom:20px;right:20px;background:#102a25;color:white;padding:12px 16px;border-radius:10px;z-index:8}.receipt{max-width:680px;margin:10px auto;padding:25px;border:1px solid #dce4de;background:white}.receipthead{text-align:center;border-bottom:2px solid var(--green);padding-bottom:14px}.receipthead h2{color:var(--green);margin:0}.amount{font-size:30px;font-weight:850;color:var(--green)}@media(max-width:850px){.layout{grid-template-columns:1fr}.side{display:none}.cards{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}.content{padding:18px}.top{padding:0 18px}}@media(max-width:520px){.heading{display:block}.heading .toolbar{margin-top:12px}.formgrid{grid-template-columns:1fr}.full{grid-column:auto}.cards{gap:8px}.card{padding:12px}.stat{font-size:21px}.content{padding:14px}.heading h1{font-size:24px}}@media print{body{background:white}.side,.top,.no-print{display:none!important}.layout{display:block}.content{padding:0}.receipt{border:0}}
+
+/* ChandaSetu responsive Indian-inspired visual system */
+:root{--ink:#202b28;--muted:#66736d;--line:#e9e2d7;--bg:#fbf8f1;--green:#176b50;--pale:#e8f2eb;--gold:#d79a32;--white:#fff;--red:#ad4540;--saffron:#e58b35;--maroon:#8d3b32;--surface:#fffdf9}
+html{width:100%;max-width:100%;overflow-x:hidden;scroll-behavior:smooth}
+body{width:100%;max-width:100%;overflow-x:hidden;background:linear-gradient(180deg,#fffaf1 0,#fbf8f1 260px,#f6f7f3 100%);color:var(--ink)}
+button{min-height:42px;transition:transform .15s ease,box-shadow .15s ease,background .15s ease}
+button:active{transform:translateY(1px)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #e8b45b;outline-offset:2px}
+.side{background:linear-gradient(165deg,#183d34 0%,#102a25 70%,#35251e 100%);border-right:3px solid #d99a43}
+.brand{letter-spacing:-.8px}.brand span{color:#f2b65b}
+.tag{color:#e5c9a0}
+.orgbox{background:#24483d;border-color:#547362}
+.nav button{border-radius:9px;padding:11px 12px}
+.nav button.active,.nav button:hover{background:#e9b35c;color:#24352e}
+.top{height:auto;min-height:78px;padding:14px 28px;gap:18px;background:rgba(255,253,249,.96);box-shadow:0 2px 12px #4b38200a}
+.top>div:first-child{min-width:0}.top b{font-size:17px}.top .toolbar{justify-content:flex-end}
+.primary{background:linear-gradient(135deg,#176b50,#0d5942);box-shadow:0 4px 10px #176b5020}
+.soft{background:#f8edda;color:#80501c;border:1px solid #f0dfc2}
+.eyebrow{color:#9a5d22}
+.card,.panel{background:var(--surface);border-color:#e9e2d7;box-shadow:0 4px 16px #3d30200a}
+.card{border-top:3px solid #e7b15e}
+.stat{color:#174f3d}
+.panel h3{color:#273a32}
+.tablewrap{max-width:100%;min-width:0;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+.tablewrap table{min-width:600px}
+.content,.main,.layout,.grid2,.cards,.panel{min-width:0}
+.mobile-nav{display:none}
+@media(max-width:850px){
+ .layout{display:block;width:100%;min-width:0}
+ .side{display:none}
+ .main{width:100%;min-width:0}
+ .top{display:flex;flex-direction:column;align-items:stretch;gap:12px;padding:15px 16px}
+ .top>div:first-child{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+ .top>div:first-child br{display:none}
+ .top small{font-size:12px;text-align:right}
+ .top .toolbar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;gap:9px}
+ .top .toolbar button{width:100%;white-space:normal}
+ .content{padding:18px 15px 92px;width:100%;max-width:100%}
+ .mobile-nav{display:flex;position:sticky;top:0;z-index:4;gap:7px;overflow-x:auto;white-space:nowrap;padding:9px 12px;background:#fffdf8;border-bottom:1px solid #eadfcf;box-shadow:0 3px 12px #32200d0a;scrollbar-width:thin}
+ .mobile-nav button{flex:0 0 auto;background:transparent;color:#52645a;border:1px solid transparent;padding:8px 12px;min-height:38px;font-size:13px}
+ .mobile-nav button.active{background:#f8ead2;color:#7a4818;border-color:#eed5ad}
+ .cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .grid2{grid-template-columns:minmax(0,1fr)}
+ .heading{display:flex;flex-direction:column;align-items:stretch}
+ .heading .toolbar{display:flex;flex-wrap:wrap}
+}
+@media(max-width:520px){
+ .top{padding:13px 14px}
+ .top>div:first-child{align-items:flex-start;flex-direction:column;gap:2px}
+ .top small{text-align:left}
+ .top .toolbar{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .content{padding:16px 12px 90px}
+ .heading{gap:10px;margin-bottom:17px}
+ .heading h1{font-size:25px;line-height:1.2;letter-spacing:-.6px}
+ .heading .muted{font-size:14px}
+ .cards{gap:9px}
+ .card{padding:13px 11px}
+ .stat{font-size:21px;overflow-wrap:anywhere}
+ .statlabel{font-size:12px}
+ .panel{padding:14px 12px;border-radius:14px}
+ .panel h3{font-size:16px}
+ .grid2{gap:12px}
+ .tablewrap{margin:0;width:100%}
+ .formgrid{grid-template-columns:minmax(0,1fr)}
+ .full{grid-column:auto}
+ .modal{padding:18px 15px;width:100%;max-height:88vh}
+ .actions{flex-wrap:wrap}
+ .receipt{margin:8px;padding:15px}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
 </style>
 </head>
 <body>
@@ -16,7 +86,7 @@
 <nav class="nav" id="nav">
 <button class="active" data-page="overview">▦ &nbsp; Overview</button><button data-page="events">▣ &nbsp; Events</button><button data-page="donations">＋ &nbsp; Chanda collection</button><button data-page="expenses">↗ &nbsp; Expenses</button><button data-page="collectors">♙ &nbsp; Collectors</button><button data-page="reports">▤ &nbsp; Reports</button><button data-page="organizations">⌂ &nbsp; Organizations</button><button data-page="audit">◷ &nbsp; Audit history</button>
 </nav><div class="foot">SUPABASE CLOUD · Live workspace<br>ChandaSetu v0.2</div></aside>
-<main class="main"><header class="top"><div><b id="pageTitle">Overview</b><br><small>Community workspace · Live data</small></div><div class="toolbar"><button class="soft" onclick="openDonation()">＋ Add chanda</button><button class="primary" onclick="openEvent()">＋ New event</button></div></header><div class="content" id="app"></div></main>
+<main class="main"><header class="top"><div><b id="pageTitle">Overview</b><br><small>Community workspace · Live data</small></div><div class="toolbar"><button class="soft" onclick="openDonation()">＋ Add chanda</button><button class="primary" onclick="openEvent()">＋ New event</button></div></header><nav class="mobile-nav" id="mobileNav" aria-label="Main navigation"><button class="active" data-page="overview">Overview</button><button data-page="events">Events</button><button data-page="donations">Chanda</button><button data-page="expenses">Expenses</button><button data-page="collectors">Collectors</button><button data-page="reports">Reports</button><button data-page="organizations">Groups</button><button data-page="audit">Audit</button></nav><div class="content" id="app"></div></main>
 </div><div id="modalroot"></div><div id="toastroot"></div>
 <script>
 let db={orgs:[],events:[],collectors:[],donations:[],expenses:[]},currentOrg='',page='overview';
@@ -30,7 +100,7 @@ const eventName=id=>db.events.find(x=>x.id===id)?.name||'—',collectorName=id=>
 async function save(){if(!window.chandaPersistWorkspace)throw new Error('Database session not ready. Please sign in again.');await window.chandaPersistWorkspace(db,currentOrg);render()}
 function toast(s){$('toastroot').innerHTML='<div class="toast">'+esc(s)+'</div>';setTimeout(()=>$('toastroot').innerHTML='',2200)}
 $('nav').addEventListener('click',e=>{const b=e.target.closest('[data-page]');if(b)setPage(b.dataset.page)});
-function setPage(p){page=p;document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===p));render()}
+function setPage(p){page=p;document.querySelectorAll('.nav button,.mobile-nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===p));render();const active=document.querySelector('.mobile-nav button.active');if(active)active.scrollIntoView({block:'nearest',inline:'nearest'})}
 function render(){if(!db.orgs.length){return}$('orgLabel').innerHTML=esc(org().name)+'<br><small>'+esc(org().city)+' ▾</small>';const topActions=document.querySelector('.top .toolbar');topActions.innerHTML=(canCollect()?'<button class="soft" onclick="openDonation()">＋ Add chanda</button>':'')+(canAdmin()?'<button class="primary" onclick="openEvent()">＋ New event</button>':'');const titles={overview:'Overview',events:'Events',donations:'Chanda collection',expenses:'Expenses',collectors:'Collectors',reports:'Reports',organizations:'Organizations',audit:'Audit history'};$('pageTitle').textContent=titles[page]||'Overview';const el=$('app');({overview:overview,events:eventsPage,donations:donationsPage,expenses:expensesPage,collectors:collectorsPage,reports:reportsPage,organizations:orgsPage,audit:auditPage}[page]||overview)(el)}
 function heading(k,t,d,btn=''){return '<div class="heading"><div><div class="eyebrow">'+k+'</div><h1>'+t+'</h1><div class="muted">'+d+'</div></div>'+btn+'</div>'}
 function table(rows,headers){return '<div class="tablewrap"><table><thead><tr>'+headers.map(x=>'<th>'+x+'</th>').join('')+'</tr></thead><tbody>'+ (rows||'')+'</tbody></table></div>'}
