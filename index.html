@@ -105,6 +105,13 @@ render();
 <script type="module">
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.0';
 const supabase = createClient('https://ebmoceseyepavqrioyyk.supabase.co','sb_publishable_Fi45Kjcq2V__5laFSB6_8A_Wle71fyb');
+const OUTBOX_DB='chandasetu-outbox-v1';
+function outboxOpen(){return new Promise((resolve,reject)=>{const req=indexedDB.open(OUTBOX_DB,1);req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains('contributions'))req.result.createObjectStore('contributions',{keyPath:'id'})};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
+async function outboxPut(row){const db=await outboxOpen();return new Promise((resolve,reject)=>{const tx=db.transaction('contributions','readwrite');tx.objectStore('contributions').put(row);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)})}
+async function outboxAll(orgId){const db=await outboxOpen();return new Promise((resolve,reject)=>{const req=db.transaction('contributions').objectStore('contributions').getAll();req.onsuccess=()=>resolve((req.result||[]).filter(x=>x.organization_id===orgId));req.onerror=()=>reject(req.error)})}
+async function outboxDelete(id){const db=await outboxOpen();return new Promise((resolve,reject)=>{const tx=db.transaction('contributions','readwrite');tx.objectStore('contributions').delete(id);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)})}
+async function sendContribution(p){const {data,error}=await supabase.rpc('create_contribution',{p_id:p.id,p_organization_id:p.organization_id,p_event_id:p.event_id,p_collector_id:p.collector_id,p_donor_name:p.donor_name,p_donor_phone:p.donor_phone,p_amount:p.amount,p_payment_method:p.payment_method,p_transaction_reference:p.transaction_reference,p_notes:p.notes,p_received_at:p.received_at});if(error)throw error;const row=Array.isArray(data)?data[0]:data;if(!row)throw new Error('Server did not return a receipt');return row}
+
 const gate=document.getElementById('authGate'), orgSetup=document.getElementById('authOrgSetup');
 let signupMode=false, currentUser=null, memberships=[];
 const authError=document.getElementById('authError');
@@ -193,6 +200,9 @@ async function loadWorkspace(orgId){
   expenses:(ex.data||[]).map(x=>({id:x.id,org:x.organization_id,title:x.title,amount:Number(x.amount),event:x.event_id,date:x.expense_date,paidBy:x.paid_to||''}))
  });
 }
+window.chandaReverseContribution=async function(id,reason){const {data,error}=await supabase.rpc('reverse_contribution',{p_contribution_id:id,p_reason:reason});if(error)throw error;await loadWorkspace(window.chandaCurrentOrg);return data};
+window.chandaSyncOutbox=async function(){if(!currentUser||!navigator.onLine)return;for(const m of memberships){const pending=await outboxAll(m.organization_id);for(const p of pending){try{await sendContribution(p);await outboxDelete(p.id);if(m.organization_id===window.chandaCurrentOrg)toast('Offline entry synced · official receipt issued')}catch(e){if(!navigator.onLine)return;console.error('Outbox sync failed',e);}}}if(window.chandaCurrentOrg)await loadWorkspace(window.chandaCurrentOrg)};
+window.addEventListener('online',()=>setTimeout(()=>window.chandaSyncOutbox?.(),1000));
 window.chandaSwitchWorkspace=async function(orgId){
  if(!memberships.some(m=>m.organization_id===orgId))throw new Error('You are not a member of this organization.');
  await loadWorkspace(orgId);showSession(currentUser,memberships);
@@ -208,7 +218,7 @@ window.chandaCreateOrganization=async function(name,city){
  memberships=[...memberships,{organization_id:org.id,role:'owner',organizations:org}];
  await loadWorkspace(org.id);showSession(currentUser,memberships);
 };
-window.chandaCreateContribution=async function(input){const id=crypto.randomUUID();const {data,error}=await supabase.rpc('create_contribution',{p_id:id,p_organization_id:window.chandaCurrentOrg,p_event_id:input.event,p_collector_id:input.collector,p_donor_name:input.name,p_donor_phone:input.phone||null,p_amount:input.amount,p_payment_method:input.mode.toLowerCase(),p_transaction_reference:input.mode.toLowerCase()==='upi'?input.note:null,p_notes:input.note||null,p_received_at:new Date().toISOString()});if(error)throw error;const row=Array.isArray(data)?data[0]:data;if(!row)throw new Error('Receipt was not returned by the server.');await loadWorkspace(window.chandaCurrentOrg);return {id:row.id,receipt:row.receipt_number}}
+window.chandaCreateContribution=async function(input){const id=crypto.randomUUID(),p={id,organization_id:window.chandaCurrentOrg,event_id:input.event||null,collector_id:input.collector||null,donor_name:input.name||null,donor_phone:input.phone||null,amount:input.amount,payment_method:input.mode.toLowerCase(),transaction_reference:input.mode.toLowerCase()==='upi'?input.note||null:null,notes:input.note||null,received_at:new Date().toISOString()};try{if(!navigator.onLine)throw new TypeError('Offline');const row=await sendContribution(p);await loadWorkspace(window.chandaCurrentOrg);return {id:row.id,receipt:row.receipt_number,status:row.status}}catch(err){const networkFailure=!navigator.onLine||err instanceof TypeError||/network|fetch failed|failed to fetch|load failed/i.test(err.message||'');if(!networkFailure)throw err;await outboxPut({...p,queued_at:new Date().toISOString()});const local={id,receipt:'PENDING-'+id.slice(0,8).toUpperCase(),org:p.organization_id,event:p.event_id,name:p.donor_name||'Anonymous',phone:p.donor_phone||'',amount:Number(p.amount),mode:p.payment_method.toUpperCase(),collector:p.collector_id,date:p.received_at.slice(0,10),note:p.notes||'',status:'pending_sync'};db.donations.unshift(local);render();return {id,receipt:local.receipt,status:'pending_sync'}}}
 window.chandaPersistWorkspace=async function(data,orgId){
  if(!currentUser||!orgId)throw new Error('No active organization.');
  const rows=[
