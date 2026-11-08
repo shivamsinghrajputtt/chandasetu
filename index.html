@@ -144,6 +144,73 @@ body.receipt-verify-mode #verifyForm button{width:100%;min-height:48px;backgroun
 .verify-loading{padding:14px;color:#53665b}
 @media(max-width:420px){body.receipt-verify-mode #authGate{padding:12px}.verify-record-grid{grid-template-columns:1fr 1fr}}
 
+
+/* Premium, human-readable receipt layout */
+.receipt-modal{background:#f2f0e9!important;padding:clamp(10px,2.5vw,22px)!important}
+.receipt-document{--receipt-green:#124d3d;--receipt-gold:#bd8738;max-width:650px!important;padding:clamp(22px,5vw,40px)!important;border:1px solid #e4dccd!important;border-radius:18px!important;background:#fffefa!important;box-shadow:0 14px 38px #20372b12!important}
+.receipt-document:before{height:8px!important;background:linear-gradient(90deg,#124d3d 0 78%,#c18b3d 78% 100%)!important}
+.receipt-topline{padding:5px 0 16px!important;color:#79613e!important;font-size:9px!important;letter-spacing:1.2px!important}
+.receipt-status{font-size:9px!important;padding:7px 11px!important}
+.receipt-document .receipthead{padding:23px 0 22px!important}
+.receipt-brandmark{width:43px!important;height:43px!important;margin:0 auto 10px!important;background:#f6ead4!important;color:#a56c27!important;font-size:23px!important}
+.receipt-document .receipthead h2{font-size:clamp(25px,4vw,32px)!important;letter-spacing:-.5px!important}
+.receipt-address{font-size:13px!important;margin-top:6px!important}
+.receipt-document .receipthead>b{display:inline-block!important;margin-top:15px!important;padding:7px 13px!important;border:1px solid #e8ddc9!important;border-radius:5px!important;background:#fbf7ee!important;color:#805b2d!important;font-size:10px!important;letter-spacing:1.4px!important}
+.receipt-document .receipthead p{font-size:12px!important;margin-top:8px!important}
+.receipt-meta{padding:17px 0!important;gap:14px!important}
+.receipt-meta span,.receipt-details span{font-size:9px!important;letter-spacing:1.1px!important;color:#7b817b!important}
+.receipt-meta b{font-size:14px!important;color:#24382f!important}
+.receipt-body{padding:20px 0 17px!important}
+.receipt-thanks{font-size:13px!important;color:#737b74!important}
+.receipt-body h3{font-size:23px!important;line-height:1.25!important;margin:6px 0 21px!important;color:#183d31!important}
+.receipt-details{gap:19px 24px!important}
+.receipt-details b{font-size:14px!important;line-height:1.45!important;color:#26382f!important}
+.receipt-amount{margin-top:23px!important;padding:18px 19px!important;border:1px solid #dce7dc!important;border-left:4px solid #176b50!important;border-radius:10px!important;background:#f3f7f1!important}
+.receipt-amount>div{gap:7px!important}
+.receipt-amount>div span{font-size:10px!important;letter-spacing:1.1px!important;color:#64736a!important}
+.receipt-amount>div b{font-size:12px!important;color:#64736a!important}
+.receipt-amount strong{font-size:clamp(29px,5vw,36px)!important;color:#14563f!important}
+.receipt-amount-words{font-size:11px!important;line-height:1.5!important;margin-top:9px!important;color:#68736c!important}
+.receipt-verify{margin:18px 0!important;padding:13px!important;gap:14px!important;border:1px solid #e2e3d9!important;border-radius:11px!important;background:#fff!important}
+.receipt-verify img{width:94px!important;height:94px!important;flex-basis:94px!important}
+.receipt-verify b{font-size:13px!important;color:#155b44!important}
+.receipt-verify span,.receipt-verify small,.receipt-verify a{font-size:11px!important;line-height:1.5!important}
+.receipt-verify a{font-weight:750!important}
+.receipt-footer{padding-top:18px!important;gap:18px!important;border-top:1px solid #e8e1d5!important}
+.receipt-sign,.receipt-footnote{gap:5px!important}
+.receipt-sign b,.receipt-footnote b{font-size:12px!important;color:#31443a!important}
+.receipt-sign small,.receipt-footnote span{font-size:10px!important;line-height:1.45!important;color:#737b74!important}
+.receipt-bottom{margin-top:17px!important;padding-top:12px!important;border-top:1px solid #e8e1d5!important;color:#876a3d!important;font-size:11px!important;letter-spacing:.3px!important}
+@media(max-width:520px){
+ .receipt-modal{padding:8px!important}
+ .receipt-document{padding:20px 17px!important;border-radius:13px!important}
+ .receipt-details{gap:14px 12px!important}
+ .receipt-details b{font-size:13px!important}
+ .receipt-body h3{font-size:20px!important}
+ .receipt-verify{align-items:center!important;padding:10px!important;gap:10px!important}
+ .receipt-verify img{width:78px!important;height:78px!important;flex-basis:78px!important}
+ .receipt-verify span,.receipt-verify small,.receipt-verify a{font-size:10px!important}
+}
+@media print{
+ @page{size:A5 portrait;margin:5mm}
+ html,body{width:100%!important;height:auto!important;overflow:visible!important;background:#fff!important}
+ .receipt-document{max-width:none!important;width:100%!important;padding:4mm!important;border-radius:0!important;box-shadow:none!important}
+ .receipt-document .receipthead{padding:8px 0!important}
+ .receipt-brandmark{width:28px!important;height:28px!important;font-size:15px!important;margin-bottom:4px!important}
+ .receipt-document .receipthead h2{font-size:20px!important}
+ .receipt-document .receipthead>b{margin-top:6px!important;padding:4px 8px!important}
+ .receipt-meta{padding:8px 0!important}
+ .receipt-body{padding:8px 0!important}
+ .receipt-body h3{font-size:16px!important;margin:3px 0 8px!important}
+ .receipt-details{gap:7px 12px!important}
+ .receipt-amount{margin-top:8px!important;padding:8px 10px!important}
+ .receipt-amount strong{font-size:23px!important}
+ .receipt-verify{margin:8px 0!important;padding:6px!important}
+ .receipt-verify img{width:55px!important;height:55px!important;flex-basis:55px!important}
+ .receipt-footer{padding-top:8px!important;gap:8px!important}
+ .receipt-bottom{margin-top:7px!important;padding-top:5px!important}
+}
+
 </style>
 </head>
 <body>
@@ -242,11 +309,14 @@ function showReceipt(id){
  const statusClass=d.status==='pending_sync'?'pending':d.status==='reversed'?'reversed':'confirmed';
  const statusNote=d.status==='pending_sync'?'<div class="receipt-alert pending">Saved on this device only. This is not an official receipt until it syncs with the server.</div>':d.status==='reversed'?'<div class="receipt-alert reversed"><b>Reversed:</b> '+esc(d.reversalReason||'Reason not recorded')+'. This record remains available for audit.</div>':'';
  const printButton=d.status==='pending_sync'?'':'<button class="primary" onclick="window.print()">Print / Save PDF</button>';
- const mode=String(d.mode||'').toUpperCase(),modeHelp=mode.includes('UPI')?'Manual UPI entry — match the reference with the organization bank statement.':'Cash received and recorded by the committee.';
- const dateLabel=d.date?new Intl.DateTimeFormat('en-IN',{day:'2-digit',month:'short',year:'numeric',timeZone:'Asia/Kolkata'}).format(new Date(d.date+'T12:00:00+05:30')):'Date not available';
+ const mode=String(d.mode||'').toUpperCase();
+ const modeHelp=mode.includes('UPI')?'UPI entry recorded by the committee. Please retain the transaction reference for your records.':'Cash received and recorded by the committee.';
+ const dateLabel=d.date?new Intl.DateTimeFormat('en-IN',{day:'2-digit',month:'long',year:'numeric',timeZone:'Asia/Kolkata'}).format(new Date(d.date+'T12:00:00+05:30')):'Date not available';
  const slug=org().slug||'',verifyUrl=slug?'https://shivamsinghrajputtt.github.io/chandasetu/?verify=1&org='+encodeURIComponent(slug)+'&receipt='+encodeURIComponent(d.receipt):'';
- const qr=verifyUrl&&d.status!=='pending_sync'?'<div class="receipt-verify"><img alt="Scan to verify this receipt online" src="https://api.qrserver.com/v1/create-qr-code/?size=112x112&margin=4&data='+encodeURIComponent(verifyUrl)+'"><div><b>Verify this receipt online</b><span>Scan the QR code to check its status and details. No account is required.</span><a href="'+esc(verifyUrl)+'">'+esc('Open online verification')+'</a><small>Receipt no. '+esc(d.receipt)+'</small></div></div>':'<div class="receipt-verify-text">Online verification will be available after this entry is synced and the organization verification code is configured.</div>';
- $('modalroot').innerHTML='<div class="modalback receipt-backdrop" onclick="if(event.target===this)closeModal()"><div class="modal receipt-modal"><div class="toolbar no-print receipt-actions"><button class="ghost" onclick="closeModal()">Close</button>'+printButton+'</div><article class="receipt receipt-document '+statusClass+'"><div class="receipt-topline"><span>COMMUNITY CONTRIBUTION RECEIPT</span><span class="receipt-status '+statusClass+'">'+status+'</span></div><header class="receipthead"><h2>'+esc(org().name)+'</h2><div class="receipt-address">'+esc(org().city||'')+'</div><b>OFFICIAL RECEIPT OF CONTRIBUTION</b></header><section class="receipt-meta"><div><span>RECEIPT NO.</span><b>'+esc(d.receipt)+'</b></div><div><span>DATE RECEIVED</span><b>'+esc(dateLabel)+'</b></div></section><section class="receipt-body"><p class="receipt-thanks">Received with thanks from</p><h3>'+esc(d.name||'Anonymous donor')+'</h3><div class="receipt-details"><div><span>EVENT / PURPOSE</span><b>'+esc(eventName(d.event))+'</b></div><div><span>PAYMENT METHOD</span><b>'+esc(mode||'Not recorded')+'</b></div><div><span>COLLECTED BY</span><b>'+esc(collectorName(d.collector)||'Committee collection')+'</b></div>'+(d.phone?'<div><span>DONOR MOBILE</span><b>'+esc(d.phone)+'</b></div>':'')+(d.note?'<div class="receipt-note"><span>TRANSACTION REFERENCE / NOTE</span><b>'+esc(d.note)+'</b></div>':'')+'</div><div class="receipt-amount"><div><span>AMOUNT RECEIVED</span><b>'+esc(indianAmountWords(d.amount))+'</b></div><strong>'+money(d.amount)+'</strong></div><p class="receipt-amount-words">'+esc(modeHelp)+'</p></section>'+statusNote+qr+'<footer class="receipt-footer"><div class="receipt-sign"><span>________________________</span><b>Authorized signatory</b><small>For '+esc(org().name)+'</small></div><div class="receipt-footnote"><b>Computer-generated receipt</b><span>Keep this receipt for your records.</span><span>Not a tax-deduction certificate.</span></div></footer><div class="receipt-bottom">Thank you for supporting the community.</div></article></div></div>';
+ const qr=verifyUrl&&d.status!=='pending_sync'?'<div class="receipt-verify"><img alt="QR code to verify this receipt online" src="https://api.qrserver.com/v1/create-qr-code/?size=112x112&margin=4&data='+encodeURIComponent(verifyUrl)+'"><div><b>Verify this receipt online</b><span>Scan to confirm this receipt directly with ChandaSetu. No account is needed.</span><a href="'+esc(verifyUrl)+'">Open verification page</a><small>Receipt ID: '+esc(d.receipt)+'</small></div></div>':'<div class="receipt-verify-text">Online verification will be available after this entry is synced with the server.</div>';
+ const collector=collectorName(d.collector);
+ const collectorLabel=(!collector||collector==='—'||collector==='-')?'Committee collection':collector;
+ $('modalroot').innerHTML='<div class="modalback receipt-backdrop" onclick="if(event.target===this)closeModal()"><div class="modal receipt-modal"><div class="toolbar no-print receipt-actions"><button class="ghost" onclick="closeModal()">Close</button>'+printButton+'</div><article class="receipt receipt-document '+statusClass+'"><div class="receipt-topline"><span>CHANDASETU · COMMUNITY ACCOUNTS</span><span class="receipt-status '+statusClass+'">'+status+'</span></div><header class="receipthead"><div class="receipt-brandmark" aria-hidden="true">✦</div><h2>'+esc(org().name)+'</h2><div class="receipt-address">'+esc(org().city||'')+'</div><b>CONTRIBUTION RECEIPT</b><p>A clear record of your community contribution</p></header><section class="receipt-meta"><div><span>RECEIPT NUMBER</span><b>'+esc(d.receipt)+'</b></div><div><span>DATE RECEIVED</span><b>'+esc(dateLabel)+'</b></div></section><section class="receipt-body"><p class="receipt-thanks">Received with thanks from</p><h3>'+esc(d.name||'Anonymous donor')+'</h3><div class="receipt-details"><div><span>EVENT / PURPOSE</span><b>'+esc(eventName(d.event))+'</b></div><div><span>PAYMENT METHOD</span><b>'+esc(mode||'Not recorded')+'</b></div><div><span>COLLECTED BY</span><b>'+esc(collectorLabel)+'</b></div>'+(d.phone?'<div><span>DONOR MOBILE</span><b>'+esc(d.phone)+'</b></div>':'')+(d.note?'<div class="receipt-note"><span>TRANSACTION REFERENCE / NOTE</span><b>'+esc(d.note)+'</b></div>':'')+'</div><div class="receipt-amount"><div><span>CONTRIBUTION AMOUNT</span><b>'+esc(indianAmountWords(d.amount))+'</b></div><strong>'+money(d.amount)+'</strong></div><p class="receipt-amount-words">'+esc(modeHelp)+'</p></section>'+statusNote+qr+'<footer class="receipt-footer"><div class="receipt-sign"><span>________________________</span><b>Authorized signatory</b><small>For '+esc(org().name)+'</small></div><div class="receipt-footnote"><b>Digitally recorded acknowledgement</b><span>Please retain this receipt for your records.</span><span>This is not a tax-deduction certificate.</span></div></footer><div class="receipt-bottom">With gratitude · '+esc(org().name)+'</div></article></div></div>';
 }
 function exportAuditCSV(){const rows=[['Timestamp','Action','Table','Record ID','Actor ID'],...(window.chandaAuditRows||[]).map(x=>[x.created_at,x.action,x.table_name,x.record_id,x.actor_id||'System'])];const csv=rows.map(r=>r.map(v=>'\"'+String(v??'').replaceAll('\"','\"\"')+'\"').join(',')).join('\\n'),a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='chandasetu-audit-log.csv';a.click();URL.revokeObjectURL(a.href)}
 function exportCSV(){const rows=[['Receipt','Donor','Event','Amount','Mode','Collector','Date','Status','Reversal reason'],...dons().map(d=>[d.receipt,d.name,eventName(d.event),d.amount,d.mode,collectorName(d.collector),d.date,d.status||'confirmed',d.reversalReason||''])];const csv=rows.map(r=>r.map(v=>'"'+String(v??'').replaceAll('"','""')+'"').join(',')).join('\n'),a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='chandasetu-report.csv';a.click();URL.revokeObjectURL(a.href)}
