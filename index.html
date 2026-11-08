@@ -266,16 +266,15 @@ document.getElementById('orgForm').addEventListener('submit',async e=>{
  e.preventDefault();const btn=e.submitter;btn.disabled=true;btn.textContent='Creating…';
  const name=document.getElementById('orgName').value.trim(),city=document.getElementById('orgCity').value.trim();
  try{
-  // Re-validate the live Supabase session before writing. Never trust a stale in-memory user ID for RLS.
   const {data:{user},error:userError}=await supabase.auth.getUser();
   if(userError)throw userError;
   if(!user)throw new Error('Your sign-in session has expired. Please sign in again.');
   currentUser=user;
-  const slug=name.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-'+user.id.slice(0,8)+'-'+Math.random().toString(36).slice(2,6);
-  const {data:org,error}=await supabase.from('organizations').insert({name,city:city||null,slug,created_by:user.id}).select('id,name,city,slug').single();
+  // Create the organization and owner membership atomically in a narrowly scoped, auth.uid()-checked database function.
+  const {data,error}=await supabase.rpc('create_organization',{p_name:name,p_city:city||null});
   if(error)throw error;
-  const {error:memberError}=await supabase.from('organization_members').insert({organization_id:org.id,user_id:user.id,role:'owner'});
-  if(memberError)throw memberError;
+  const org=Array.isArray(data)?data[0]:data;
+  if(!org?.id)throw new Error('Workspace was created but the server did not return its details. Please sign in again.');
   const newMembership={organization_id:org.id,role:'owner',organizations:org};memberships=[...memberships,newMembership];orgSetup.style.display='none';await loadWorkspace(org.id);showSession(user,memberships);
  }catch(err){document.getElementById('orgError').textContent=err.message||'Could not create workspace.';}
  finally{btn.disabled=false;btn.textContent='Create workspace';}
