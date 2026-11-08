@@ -337,6 +337,23 @@ body.receipt-verify-mode #verifyForm button{width:100%;min-height:48px;backgroun
  .receipt-status{font-size:6.5pt!important}
 }
 
+
+/* ROOT-CAUSE PRINT FIX: exclude the hidden application layout from pagination */
+@page{size:A4 portrait;margin:5mm}
+@media print{
+ html,body{display:block!important;width:100%!important;height:auto!important;min-height:0!important;margin:0!important;padding:0!important;overflow:visible!important;background:#fff!important}
+ /* visibility:hidden keeps boxes in document flow and can create extra PDF pages.
+    Remove every direct body child except the receipt modal from print layout. */
+ body > :not(#modalroot){display:none!important}
+ #modalroot{display:block!important;position:static!important;inset:auto!important;width:100%!important;height:auto!important;min-height:0!important;margin:0!important;padding:0!important;overflow:visible!important;visibility:visible!important}
+ #modalroot *{visibility:visible!important}
+ .receipt-backdrop{display:block!important;position:static!important;inset:auto!important;width:100%!important;height:auto!important;min-height:0!important;margin:0!important;padding:0!important;overflow:visible!important;background:#fff!important}
+ .receipt-modal{display:block!important;position:static!important;width:100%!important;max-width:none!important;height:auto!important;max-height:none!important;margin:0!important;padding:0!important;overflow:visible!important;background:#fff!important}
+ .receipt-actions,.no-print{display:none!important}
+ .traditional-receipt{display:block!important;box-sizing:border-box!important;width:100%!important;max-width:none!important;height:auto!important;max-height:none!important;margin:0!important;padding:0!important;overflow:visible!important;border:0!important;border-radius:0!important;box-shadow:none!important;break-before:avoid!important;break-after:avoid!important;break-inside:avoid!important;page-break-before:avoid!important;page-break-after:avoid!important;page-break-inside:avoid!important}
+ .traditional-frame{box-sizing:border-box!important;width:100%!important;min-height:0!important;height:auto!important;overflow:visible!important;break-inside:avoid!important;page-break-inside:avoid!important}
+}
+
 </style>
 </head>
 <body>
