@@ -209,7 +209,7 @@ window.chandaCreateOrganization=async function(name,city){
  memberships=[...memberships,{organization_id:org.id,role:'owner',organizations:org}];
  await loadWorkspace(org.id);showSession(currentUser,memberships);
 };
-window.chandaCreateContribution=async function(input){const id=crypto.randomUUID();const {data,error}=await supabase.rpc('create_contribution',{p_id:id,p_organization_id:window.chandaCurrentOrg,p_event_id:input.event,p_collector_id:input.collector,p_donor_name:input.name,p_donor_phone:input.phone||null,p_amount:input.amount,p_payment_method:input.mode.toLowerCase(),p_transaction_reference:input.mode.toLowerCase()==='upi'?input.note:null,p_notes:input.note||null,p_received_at:new Date().toISOString()});if(error)throw error;await loadWorkspace(window.chandaCurrentOrg);return {id:data.id,receipt:data.receipt_number}}
+window.chandaCreateContribution=async function(input){const id=crypto.randomUUID();const {data,error}=await supabase.rpc('create_contribution',{p_id:id,p_organization_id:window.chandaCurrentOrg,p_event_id:input.event,p_collector_id:input.collector,p_donor_name:input.name,p_donor_phone:input.phone||null,p_amount:input.amount,p_payment_method:input.mode.toLowerCase(),p_transaction_reference:input.mode.toLowerCase()==='upi'?input.note:null,p_notes:input.note||null,p_received_at:new Date().toISOString()});if(error)throw error;const row=Array.isArray(data)?data[0]:data;if(!row)throw new Error('Receipt was not returned by the server.');await loadWorkspace(window.chandaCurrentOrg);return {id:row.id,receipt:row.receipt_number}}
 window.chandaPersistWorkspace=async function(data,orgId){
  if(!currentUser||!orgId)throw new Error('No active organization.');
  const rows=[
@@ -236,7 +236,7 @@ window.chandaPersistWorkspace=async function(data,orgId){
 document.getElementById('orgForm').addEventListener('submit',async e=>{
  e.preventDefault();const btn=e.submitter;btn.disabled=true;btn.textContent='Creating…';
  const name=document.getElementById('orgName').value.trim(),city=document.getElementById('orgCity').value.trim();
- const slug=name.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-'+currentUser.id.slice(0,8);
+ const slug=name.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-'+currentUser.id.slice(0,8)+'-'+Math.random().toString(36).slice(2,6);
  try{
   const {data:org,error}=await supabase.from('organizations').insert({name,city:city||null,slug,created_by:currentUser.id}).select('id,name,city,slug').single();
   if(error)throw error;
