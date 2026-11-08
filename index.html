@@ -167,6 +167,7 @@ async function loadWorkspace(orgId){
  ]);
  for(const result of [ev,co,doRows,ex])if(result.error)throw result.error;
  window.chandaCurrentOrg=orgId;
+ window.chandaKnownIds={events:new Set((ev.data||[]).map(x=>x.id)),collectors:new Set((co.data||[]).map(x=>x.id)),contributions:new Set((doRows.data||[]).map(x=>x.id)),expenses:new Set((ex.data||[]).map(x=>x.id))};
  window.chandaSetWorkspaceData({
   orgs:memberships.map(m=>({id:m.organization_id,name:m.organizations?.name||'Organization',city:m.organizations?.city||'',code:'CS'})),
   events:(ev.data||[]).map(x=>({id:x.id,org:x.organization_id,name:x.name,type:x.event_type||'Community event',date:x.starts_at?x.starts_at.slice(0,10):'',goal:Number(x.target_amount||0)})),
@@ -182,7 +183,8 @@ window.chandaSwitchWorkspace=async function(orgId){
 window.chandaCreateOrganization=async function(name,city){
  name=String(name||'').trim();if(name.length<2)throw new Error('Organization name must be at least 2 characters.');
  const slug=name.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-'+currentUser.id.slice(0,8)+'-'+Math.random().toString(36).slice(2,6);
- const {data:org,error}=await supabase.from('organizations').insert({name,city:city||null,slug,created_by:currentUser.id}).select('id,name,city').single();
+ const org={id:crypto.randomUUID(),name,city:city||null,slug,created_by:currentUser.id};
+ const {error}=await supabase.from('organizations').insert(org);
  if(error)throw error;
  const {error:memberError}=await supabase.from('organization_members').insert({organization_id:org.id,user_id:currentUser.id,role:'owner'});
  if(memberError)throw memberError;
@@ -190,17 +192,26 @@ window.chandaCreateOrganization=async function(name,city){
  await loadWorkspace(org.id);showSession(currentUser,memberships);
 };
 window.chandaPersistWorkspace=async function(data,orgId){
- if(!currentUser||!orgId)throw new Error('No active organization. Sign in again.');
- const ev=data.events.filter(x=>x.org===orgId).map(x=>({id:x.id,organization_id:orgId,name:x.name,event_type:x.type,starts_at:x.date?x.date+'T00:00:00+05:30':null,target_amount:x.goal||0,created_by:currentUser.id}));
- const co=data.collectors.filter(x=>x.org===orgId).map(x=>({id:x.id,organization_id:orgId,name:x.name,phone:x.phone||null,is_active:true}));
- const dn=data.donations.filter(x=>x.org===orgId).map(x=>({id:x.id,organization_id:orgId,event_id:x.event||null,collector_id:x.collector||null,receipt_number:x.receipt,donor_name:x.name||null,donor_phone:x.phone||null,amount:x.amount,payment_method:x.mode.toLowerCase(),transaction_reference:x.note||null,received_at:x.date+'T12:00:00+05:30',collected_by:currentUser.id,notes:x.note||null,status:'confirmed'}));
- const ex=data.expenses.filter(x=>x.org===orgId).map(x=>({id:x.id,organization_id:orgId,event_id:x.event||null,title:x.title,amount:x.amount,paid_to:x.paidBy||null,payment_method:'cash',expense_date:x.date,recorded_by:currentUser.id}));
- const jobs=[];
- if(ev.length)jobs.push(supabase.from('events').upsert(ev,{onConflict:'id'}));
- if(co.length)jobs.push(supabase.from('collectors').upsert(co,{onConflict:'id'}));
- if(dn.length)jobs.push(supabase.from('contributions').upsert(dn,{onConflict:'id'}));
- if(ex.length)jobs.push(supabase.from('expenses').upsert(ex,{onConflict:'id'}));
- const results=await Promise.all(jobs);for(const result of results)if(result.error)throw result.error;
+ if(!currentUser||!orgId)throw new Error('No active organization.');
+ const rows=[
+  ['events',data.events.filter(x=>x.org===orgId).map(x=>({id:x.id,organization_id:orgId,name:x.name,event_type:x.type,starts_at:x.date?x.date+'T00:00:00+05:30':null,target_amount:x.goal||0,created_by:currentUser.id}))],
+  ['collectors',data.collectors.filter(x=>x.org===orgId).map(x=>({id:x.id,organization_id:orgId,name:x.name,phone:x.phone||null,is_active:true}))],
+  ['contributions',data.donations.filter(x=>x.org===orgId).map(x=>({id:x.id,organization_id:orgId,event_id:x.event||null,collector_id:x.collector||null,receipt_number:x.receipt,donor_name:x.name||null,donor_phone:x.phone||null,amount:x.amount,payment_method:x.mode.toLowerCase(),transaction_reference:x.note||null,received_at:x.date+'T12:00:00+05:30',collected_by:currentUser.id,notes:x.note||null,status:'confirmed'}))],
+  ['expenses',data.expenses.filter(x=>x.org===orgId).map(x=>({id:x.id,organization_id:orgId,event_id:x.event||null,title:x.title,amount:x.amount,paid_to:x.paidBy||null,payment_method:'cash',expense_date:x.date,recorded_by:currentUser.id}))]
+ ];
+ try{
+  for(const [table,items] of rows){
+   const known=window.chandaKnownIds?.[table]||new Set();
+   const fresh=items.filter(x=>!known.has(x.id));
+   for(const row of fresh){
+    const {error}=await supabase.from(table).insert(row);
+    if(error)throw error;
+    known.add(row.id);
+   }
+   if(!window.chandaKnownIds)window.chandaKnownIds={};
+   window.chandaKnownIds[table]=known;
+  }
+ }finally{await loadWorkspace(orgId);}
 };
 
 document.getElementById('orgForm').addEventListener('submit',async e=>{
