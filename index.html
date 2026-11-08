@@ -396,6 +396,38 @@ async function auditPage(el){if(!canAdmin()){el.innerHTML=heading('Accountabilit
 function orgsPage(el){el.innerHTML=heading('Workspaces','Organizations','Your account’s committee workspaces.','<button class="primary" onclick="openOrg()">＋ Add organization</button>')+'<div class="cards">'+db.orgs.map(o=>'<div class="card"><span class="pill">Organization</span><h3>'+esc(o.name)+'</h3><div class="muted">'+esc(o.city)+'</div><p><small>Verification code: <code>'+esc(o.slug||'—')+'</code></small></p><p><button class="soft" onclick="switchOrg(\''+o.id+'\')">Open workspace</button></p></div>').join('')+'</div>'}
 async function switchOrg(id){try{await window.chandaSwitchWorkspace(id);toast('Workspace switched')}catch(e){toast(e.message||'Could not switch workspace')}}
 function modal(title,body,submit,label='Save'){ $('modalroot').innerHTML='<div class="modalback" onclick="if(event.target===this)closeModal()"><div class="modal"><h2>'+title+'</h2><form id="modalform">'+body+'<div class="actions"><button type="button" class="ghost" onclick="closeModal()">Cancel</button><button class="primary">'+label+'</button></div></form></div></div>';$('modalform').onsubmit=async e=>{e.preventDefault();const btn=e.submitter;btn.disabled=true;try{await submit(new FormData(e.target));closeModal()}catch(err){toast(err.message||'Could not save.');btn.disabled=false}}}
+
+function printReceipt(){
+ const source=document.querySelector('#modalroot .traditional-receipt');
+ if(!source){toast('Receipt is not ready to print.');return}
+ const frame=document.createElement('iframe');
+ frame.setAttribute('aria-hidden','true');
+ frame.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden';
+ document.body.appendChild(frame);
+ const doc=frame.contentDocument;
+ const clone=source.cloneNode(true);
+ const copyStyles=(original,copied)=>{
+  const computed=getComputedStyle(original);let css='';
+  for(let i=0;i<computed.length;i++){const prop=computed[i];css+=prop+':'+computed.getPropertyValue(prop)+';'}
+  copied.style.cssText=css;
+  copied.removeAttribute('onclick');
+  for(let i=0;i<original.children.length;i++)if(copied.children[i])copyStyles(original.children[i],copied.children[i]);
+ };
+ copyStyles(source,clone);
+ clone.querySelectorAll('.receipt-actions,.no-print').forEach(x=>x.remove());
+ clone.style.cssText+=';display:block!important;position:absolute!important;left:0!important;top:0!important;width:200mm!important;max-width:none!important;margin:0!important;box-sizing:border-box!important;transform-origin:top left!important;';
+ const style=doc.createElement('style');
+ style.textContent='@page{size:A4 portrait;margin:5mm}*{box-sizing:border-box!important}html,body{margin:0!important;padding:0!important;width:200mm!important;height:287mm!important;overflow:hidden!important;background:#fff!important}body{position:relative!important}.print-sheet{position:relative!important;width:200mm!important;height:287mm!important;overflow:hidden!important;background:#fff!important}.traditional-frame,.receipt-trad-top,.receipt-trad-head,.receipt-trad-meta,.receipt-trad-content,.receipt-trad-bottom,.receipt-disclaimer,.receipt-trad-footer{break-inside:avoid!important;page-break-inside:avoid!important}img{max-width:100%!important}';
+ doc.head.innerHTML='<meta charset="utf-8"><title>ChandaSetu Receipt</title>';doc.head.appendChild(style);
+ const sheet=doc.createElement('div');sheet.className='print-sheet';sheet.appendChild(clone);doc.body.innerHTML='';doc.body.appendChild(sheet);
+ const cleanup=()=>setTimeout(()=>frame.remove(),1000);
+ requestAnimationFrame(()=>requestAnimationFrame(()=>{
+  const available=287*96/25.4;const natural=clone.scrollHeight;const scale=Math.min(1,available/natural);
+  clone.style.transform='scale('+scale+')';clone.style.transformOrigin='top left';clone.style.width='200mm';clone.style.height='auto';
+  frame.contentWindow.onafterprint=cleanup;frame.contentWindow.focus();frame.contentWindow.print();setTimeout(cleanup,60000);
+ }));
+}
+
 function closeModal(){$('modalroot').innerHTML=''}
 function field(label,name,placeholder='',type='text',required=true){return '<div class="field"><label>'+label+'</label><input name="'+name+'" type="'+type+'" placeholder="'+placeholder+'" '+(required?'required':'')+'></div>'}
 function selectField(label,name,opts,required=true){return '<div class="field"><label>'+label+'</label><select name="'+name+'" '+(required?'required':'')+'>'+(required?'':'<option value="">Not assigned</option>')+opts.map(o=>'<option value="'+esc(o[0])+'">'+esc(o[1])+'</option>').join('')+'</select></div>'}
@@ -451,7 +483,7 @@ function showReceipt(id){
  const status=d.status==='pending_sync'?'PENDING SYNC — NOT AN OFFICIAL RECEIPT':d.status==='reversed'?'REVERSED — NOT INCLUDED IN TOTALS':'CONFIRMED';
  const statusClass=d.status==='pending_sync'?'pending':d.status==='reversed'?'reversed':'confirmed';
  const statusNote=d.status==='pending_sync'?'<div class="receipt-alert pending">Saved on this device only. This is not an official receipt until it syncs with the server.</div>':d.status==='reversed'?'<div class="receipt-alert reversed"><b>Reversed:</b> '+esc(d.reversalReason||'Reason not recorded')+'. This record remains available for audit.</div>':'';
- const printButton=d.status==='pending_sync'?'':'<button class="primary" onclick="window.print()">Print / Save PDF</button>';
+ const printButton=d.status==='pending_sync'?'':'<button class="primary" onclick="printReceipt()">Print / Save PDF</button>';
  const mode=String(d.mode||'').toUpperCase();
  const modeHelp=mode.includes('UPI')?'UPI contribution recorded by the committee. Retain the transaction reference for your records.':'Cash contribution received and recorded by the committee.';
  const dateLabel=d.date?new Intl.DateTimeFormat('en-IN',{day:'2-digit',month:'long',year:'numeric',timeZone:'Asia/Kolkata'}).format(new Date(d.date+'T12:00:00+05:30')):'Date not available';
