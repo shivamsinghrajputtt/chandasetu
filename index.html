@@ -297,6 +297,7 @@ document.getElementById('verifyForm').addEventListener('submit',async e=>{
 // Open the public receipt-verification form directly when a donor scans the receipt QR.
 const receiptLinkParams=new URLSearchParams(window.location.search);
 if(receiptLinkParams.get('verify')==='1'){
+ gate.style.display='grid';
  const verifyDetails=document.querySelector('#authGate details');
  const verifyOrgInput=document.getElementById('verifyOrg');
  const verifyReceiptInput=document.getElementById('verifyReceipt');
